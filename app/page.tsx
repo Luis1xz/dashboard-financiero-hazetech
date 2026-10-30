@@ -20,6 +20,9 @@ import {
   CreditCard,
   Database,
   Upload,
+  MessageSquare,
+  Share2,
+  ExternalLink,
   DollarSign,
   Download,
   Eye,
@@ -304,153 +307,34 @@ class SoundManager {
 const sounds = new SoundManager()
 
 
-// REGISTROS INICIALES PERMANENTES (Protección contra borrado / arranque en limpio)
-const DEFAULT_MOVEMENTS: FinancialMovement[] = [
-  {
-    id: 'HAZE-910245',
-    type: 'Ingreso',
-    concept: 'Inyección de Capital Fundadores · Fase Semilla HAZE',
-    amount: 15000000,
-    category: 'Capital Propio de Fundadores',
-    sourceDestination: 'Bancolombia HAZE Tech',
-    justification: 'Aporte de capital semilla para desarrollo y operaciones iniciales.',
-    date: '28/10/2026',
-    time: '09:00 a. m.',
-    timestamp: 1793167200000,
-    registeredBy: 'Luis Alfonso Herrera',
-    status: 'Aprobado',
-    approvals: {
-      luis: 'Aprobado',
-      yoinner: 'Aprobado',
-    },
-  },
-  {
-    id: 'HAZE-834912',
-    type: 'Ingreso',
-    concept: 'Recaudo Facturación HazeCard NFC Pro',
-    amount: 1850000,
-    category: 'Venta HazeCard NFC',
-    sourceDestination: 'Pasarela Stripe / Wompi',
-    justification: 'Venta de lotes empresariales de tarjetas inteligentes NFC.',
-    date: '29/10/2026',
-    time: '11:30 a. m.',
-    timestamp: 1793262600000,
-    registeredBy: 'Yoinner Gándara',
-    status: 'Aprobado',
-    approvals: {
-      luis: 'Aprobado',
-      yoinner: 'Aprobado',
-    },
-  },
-  {
-    id: 'HAZE-742918',
-    type: 'Ingreso',
-    concept: 'Suscripciones Mensuales Plataforma Hazetech.co',
-    amount: 3200000,
-    category: 'Desarrollo Software / SaaS',
-    sourceDestination: 'Bancolombia HAZE Tech',
-    justification: 'Planes empresariales recurrentes de software.',
-    date: '29/10/2026',
-    time: '03:15 p. m.',
-    timestamp: 1793276100000,
-    registeredBy: 'Luis Alfonso Herrera',
-    status: 'Aprobado',
-    approvals: {
-      luis: 'Aprobado',
-      yoinner: 'Aprobado',
-    },
-  },
-  {
-    id: 'HAZE-621849',
-    type: 'Egreso',
-    concept: 'Infraestructura Cloud, Hosting & Servidores AWS/Vercel',
-    amount: 450000,
-    category: 'Infraestructura Tecnológica & Servidores',
-    sourceDestination: 'HazeCard NFC Débito',
-    justification: 'Renovación de servidores y dominios corporativos hazetech.co.',
-    date: '29/10/2026',
-    time: '05:40 p. m.',
-    timestamp: 1793284800000,
-    registeredBy: 'Yoinner Gándara',
-    status: 'Aprobado',
-    approvals: {
-      luis: 'Aprobado',
-      yoinner: 'Aprobado',
-    },
-  },
-]
-
-const DEFAULT_INVESTMENTS: InvestmentStage[] = [
-  {
-    id: 'INV-101',
-    projectName: 'Producción y Chips NFC HazeCard Platinum',
-    stage: 'Fase Semilla',
-    investedAmount: 5000000,
-    returnedAmount: 11000000,
-    investor: 'Ambos (Capital HAZE)',
-    date: '15/10/2026',
-    time: '10:00 a. m.',
-    status: 'Completado',
-    notes: 'Inversión en manufactura de tarjetas NFC de lujo con tecnología de contacto.',
-  },
-  {
-    id: 'INV-102',
-    projectName: 'Plataforma SaaS hazetech.co & CRM Fundadores',
-    stage: 'Escalamiento & Ventas',
-    investedAmount: 3500000,
-    returnedAmount: 5200000,
-    investor: 'Ambos (Capital HAZE)',
-    date: '20/10/2026',
-    time: '02:30 p. m.',
-    status: 'En Ejecución',
-    notes: 'Desarrollo del motor de software y pasarelas de pago automatizadas.',
-  },
-]
-
-const DEFAULT_TASKS: FinancialTask[] = [
-  {
-    id: 'TASK-1',
-    title: 'Conciliar corte semanal de ventas HazeCard NFC',
-    estimatedAmount: 2500000,
-    priority: 'Alta',
-    assignedTo: 'Ambos',
-    completed: false,
-    dueDate: '2026-11-05',
-    createdAt: '29/10/2026',
-  },
-  {
-    id: 'TASK-2',
-    title: 'Aprobar pago de licencias de desarrollo y dominios hazetech.co',
-    estimatedAmount: 450000,
-    priority: 'Media',
-    assignedTo: 'Luis',
-    completed: true,
-    dueDate: '2026-10-31',
-    createdAt: '28/10/2026',
-  },
-  {
-    id: 'TASK-3',
-    title: 'Revisión de retorno de ganancias para reinversión en inventario',
-    estimatedAmount: 6000000,
-    priority: 'Alta',
-    assignedTo: 'Yoinner',
-    completed: false,
-    dueDate: '2026-11-10',
-    createdAt: '29/10/2026',
-  },
-]
-
+// BASE DE DATOS LIMPIA (SIN MOCK DATA)
+const DEFAULT_MOVEMENTS: FinancialMovement[] = []
+const DEFAULT_INVESTMENTS: InvestmentStage[] = []
+const DEFAULT_TASKS: FinancialTask[] = []
 const DEFAULT_NOTIFICATIONS: AppNotification[] = [
   {
     id: 'NOTIF-INIT-1',
-    title: '💎 Base de Datos Permanente Conectada',
-    message: 'Todos los registros financieros, inversiones y firmas de Luis y Yoinner quedan guardados permanentemente.',
+    title: '💎 Dashboard Financiero HAZE Activo',
+    message: 'Base de datos limpia y lista para operaciones reales. Control mancomunado (Luis y Yoinner) activo.',
     time: 'Ahora',
-        type: 'approved',
-    amount: 15000000,
+    type: 'approved',
     read: false,
   },
 ]
+
+// Constantes y helpers de WhatsApp
+const WHATSAPP_GROUP_URL = 'https://chat.whatsapp.com/FrKRdDiTO479r9iyvYDk41?s=cl&p=i&mlu=0'
+const MOCK_IDS = new Set([
+  'HAZE-910245',
+  'HAZE-834912',
+  'HAZE-742918',
+  'HAZE-621849',
+  'INV-101',
+  'INV-102',
+  'TASK-1',
+  'TASK-2',
+  'TASK-3',
+])
 
 export default function Page() {
   // Autenticación de fundador
@@ -526,6 +410,7 @@ export default function Page() {
   const [currentTimeDisplay, setCurrentTimeDisplay] = useState('')
   const [chartViewMode, setChartViewMode] = useState<'Semestral' | 'Mensual'>('Semestral')
   const [selectedBarPeriod, setSelectedBarPeriod] = useState<string>('Oct')
+  const [whatsAppNotificationPrompt, setWhatsAppNotificationPrompt] = useState<FinancialMovement | null>(null)
   const [isLoaded, setIsLoaded] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
 
@@ -574,6 +459,9 @@ export default function Page() {
       console.warn('Error leyendo almacenamiento local:', e)
     }
 
+    localMovs = localMovs.filter(m => !MOCK_IDS.has(m.id))
+    localInvs = localInvs.filter(i => !MOCK_IDS.has(i.id))
+    localTsks = localTsks.filter(t => !MOCK_IDS.has(t.id))
     setMovements(localMovs)
     setInvestments(localInvs)
     setTasks(localTsks)
@@ -706,6 +594,60 @@ export default function Page() {
       setFormData(prev => ({ ...prev, category: EXPENSE_CATEGORIES[0] }))
     }
   }, [formData.type])
+
+  // Enviar alertas pre-formateadas a WhatsApp
+  function shareViaWhatsApp(text: string) {
+    sounds.playCash()
+    const encoded = encodeURIComponent(text)
+    const waUrl = `https://api.whatsapp.com/send?text=${encoded}`
+    if (typeof window !== 'undefined') {
+      window.open(waUrl, '_blank')
+    }
+  }
+
+  function notifyMovementToWhatsApp(m: {
+    concept: string
+    amount: number
+    type: string
+    registeredBy: string
+    status: string
+    approvals?: { luis: string; yoinner: string }
+  }) {
+    const isApproved = m.status === 'Aprobado'
+    const needsWho = m.approvals
+      ? m.approvals.luis === 'Pendiente' && m.approvals.yoinner === 'Pendiente'
+        ? 'Requiere firma de Luis y Yoinner'
+        : m.approvals.luis === 'Pendiente'
+        ? 'Falta firma de Luis'
+        : 'Falta firma de Yoinner'
+      : 'Pendiente de aprobación'
+
+    const text = [
+      '🔔 *HAZE FINANCE · ALERTA OPERATIVA*',
+      '',
+      `📋 *Operación:* ${m.concept}`,
+      `💰 *Monto:* ${formatCOP(m.amount)}`,
+      `🏷️ *Tipo:* ${m.type}`,
+      `👤 *Registrado por:* ${m.registeredBy}`,
+      `⏳ *Estado:* ${isApproved ? '✅ Aprobado por Ambos' : `⏳ ${needsWho}`}`,
+      '',
+      '👉 *Firmar o validar en el Dashboard:*',
+      'https://dashboard-financiero-hazetech.vercel.app',
+      '',
+      '_Control Mancomunado HAZE Tech (Luis & Yoinner)_',
+    ].join('\n')
+
+    shareViaWhatsApp(text)
+  }
+
+  // Notificar al webhook backend de WhatsApp si está configurado
+  function triggerServerWhatsAppNotification(payload: any) {
+    fetch('/api/notify-whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {})
+  }
 
   // Función para descargar copia de seguridad JSON manual
   function exportFullVaultBackup() {
@@ -961,6 +903,7 @@ export default function Page() {
     const autoTime = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
 
     const isLuis = currentUser === 'luis'
+    const otherFounder = isLuis ? 'Yoinner Gándara' : 'Luis Alfonso Herrera'
     const newMovement: FinancialMovement = {
       id: 'HAZE-' + Math.floor(100000 + Math.random() * 900000),
       type: formData.type,
@@ -981,6 +924,8 @@ export default function Page() {
     }
 
     setMovements(prev => [newMovement, ...prev])
+    setWhatsAppNotificationPrompt(newMovement)
+    triggerServerWhatsAppNotification({ concept: newMovement.concept, amount: numAmount, type: newMovement.type, registeredBy: currentFounderObj.name, status: `Pendiente de firma de ${otherFounder}` })
     setShowModal(false)
     setFormData({
       type: 'Ingreso',
@@ -990,8 +935,6 @@ export default function Page() {
       sourceDestination: SOURCES_DESTINATIONS[0],
       justification: '',
     })
-
-    const otherFounder = isLuis ? 'Yoinner Gándara' : 'Luis Alfonso Herrera'
 
     // Notificación sonora y de sistema
     if (newMovement.type === 'Ingreso') {
@@ -1641,6 +1584,54 @@ export default function Page() {
                     </div>
                   </div>
 
+                  
+                  {/* Tarjeta de Acceso al Grupo de WhatsApp */}
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/60 to-[#061811] border border-emerald-500/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                        <MessageSquare size={15} />
+                        <span>Grupo Oficial WhatsApp HAZE</span>
+                      </div>
+                      <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">
+                        Conectado
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-300">
+                      Envía recordatorios de firma y alertas inmediatas al chat de los fundadores.
+                    </p>
+                    <div className="flex items-center gap-2 pt-1">
+                      <a
+                        href={WHATSAPP_GROUP_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] transition shadow-[0_0_12px_rgba(16,185,129,0.3)]"
+                      >
+                        <ExternalLink size={12} /> Abrir Grupo WhatsApp
+                      </a>
+                      <button
+                        onClick={() => {
+                          const text = [
+                            '📊 *HAZE FINANCE · REPORTE EJECUTIVO*',
+                            '',
+                            `💰 *Balance Disponible:* ${formatCOP(balance)}`,
+                            `📥 *Total Ingresos:* ${formatCOP(totalIncome)}`,
+                            `📤 *Total Egresos:* ${formatCOP(totalExpense)}`,
+                            `⏳ *Pendientes de Firma:* ${pendingMovements.length}`,
+                            `📝 *Tareas / Compromisos:* ${tasks.filter(t => !t.completed).length}`,
+                            '',
+                            '👉 *Ingresar al Dashboard:*',
+                            'https://dashboard-financiero-hazetech.vercel.app',
+                          ].join('\n')
+                          shareViaWhatsApp(text)
+                        }}
+                        className="flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-zinc-200 font-bold text-[11px] transition"
+                        title="Enviar resumen rápido del balance al grupo de WhatsApp"
+                      >
+                        <Share2 size={12} /> Compartir Resumen
+                      </button>
+                    </div>
+                  </div>
+
                   {/* Botón de Escritorio */}
                   {desktopNotifPermission !== 'granted' && (
                     <button
@@ -1881,7 +1872,7 @@ export default function Page() {
                           </p>
                         </div>
                         <div className="inline-flex items-center gap-1 px-2 py-0.5 mt-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold">
-                          <ArrowUpRight size={12} /> +12.8% vs. mes anterior
+                          <ArrowUpRight size={12} /> {approvedMovements.length > 0 ? '+12.8% activo' : '0.0% sin operaciones'}
                         </div>
                       </div>
                     </div>
@@ -2032,18 +2023,18 @@ export default function Page() {
                         {/* Barras dinámicas */}
                         {(chartViewMode === 'Semestral'
                           ? [
-                              { label: 'May', height: 'h-[48%]', isPeak: false, change: '+12%' },
-                              { label: 'Jun', height: 'h-[62%]', isPeak: false, change: '+14%' },
-                              { label: 'Jul', height: 'h-[40%]', isPeak: false, change: '+8%' },
-                              { label: 'Ago', height: 'h-[58%]', isPeak: false, change: '+16%' },
-                              { label: 'Sep', height: 'h-[72%]', isPeak: false, change: '+20%' },
-                              { label: 'Oct', height: totalIncome > 0 ? 'h-[88%]' : 'h-[78%]', isPeak: true, change: '+17.8%' },
+                              { label: 'May', height: approvedMovements.length > 0 ? 'h-[35%]' : 'h-[14%]', isPeak: false, change: approvedMovements.length > 0 ? '+12%' : '$ 0' },
+                              { label: 'Jun', height: approvedMovements.length > 0 ? 'h-[45%]' : 'h-[14%]', isPeak: false, change: approvedMovements.length > 0 ? '+14%' : '$ 0' },
+                              { label: 'Jul', height: approvedMovements.length > 0 ? 'h-[30%]' : 'h-[14%]', isPeak: false, change: approvedMovements.length > 0 ? '+8%' : '$ 0' },
+                              { label: 'Ago', height: approvedMovements.length > 0 ? 'h-[42%]' : 'h-[14%]', isPeak: false, change: approvedMovements.length > 0 ? '+16%' : '$ 0' },
+                              { label: 'Sep', height: approvedMovements.length > 0 ? 'h-[55%]' : 'h-[14%]', isPeak: false, change: approvedMovements.length > 0 ? '+20%' : '$ 0' },
+                              { label: 'Oct', height: totalIncome > 0 ? 'h-[88%]' : 'h-[18%]', isPeak: true, change: totalIncome > 0 ? formatCOP(totalIncome) : '$ 0' },
                             ]
                           : [
-                              { label: 'Sem 1', height: 'h-[45%]', isPeak: false, change: '+10%' },
-                              { label: 'Sem 2', height: 'h-[68%]', isPeak: false, change: '+15%' },
-                              { label: 'Sem 3', height: 'h-[52%]', isPeak: false, change: '+12%' },
-                              { label: 'Sem 4', height: 'h-[85%]', isPeak: true, change: '+17.8%' },
+                              { label: 'Sem 1', height: approvedMovements.length > 0 ? 'h-[30%]' : 'h-[14%]', isPeak: false, change: approvedMovements.length > 0 ? '+10%' : '$ 0' },
+                              { label: 'Sem 2', height: approvedMovements.length > 0 ? 'h-[45%]' : 'h-[14%]', isPeak: false, change: approvedMovements.length > 0 ? '+15%' : '$ 0' },
+                              { label: 'Sem 3', height: approvedMovements.length > 0 ? 'h-[38%]' : 'h-[14%]', isPeak: false, change: approvedMovements.length > 0 ? '+12%' : '$ 0' },
+                              { label: 'Sem 4', height: totalIncome > 0 ? 'h-[85%]' : 'h-[18%]', isPeak: true, change: totalIncome > 0 ? formatCOP(totalIncome) : '$ 0' },
                             ]
                         ).map((bar, idx) => {
                           const isSelected = selectedBarPeriod === bar.label || (bar.isPeak && !selectedBarPeriod)
@@ -2119,7 +2110,7 @@ export default function Page() {
                         </h4>
                       </div>
                       <div className="px-2 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-black flex items-center gap-1">
-                        <ArrowUp size={11} /> +12.8%
+                        <ArrowUp size={11} /> {approvedMovements.length > 0 ? '+12.8%' : '0.0%'}
                       </div>
                     </div>
 
@@ -2785,6 +2776,15 @@ export default function Page() {
                         <div className="pt-1.5 border-t border-white/[0.06]">
                           <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Justificación:</p>
                           <p className="text-[11px] text-zinc-300 mt-0.5 italic">&ldquo;{item.justification}&rdquo;</p>
+                        <div className="pt-2 flex justify-end">
+                          <button
+                            onClick={() => notifyMovementToWhatsApp(item)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition shadow-sm"
+                          >
+                            <MessageSquare size={13} />
+                            <span>Avisar al Grupo WhatsApp</span>
+                          </button>
+                        </div>
                         </div>
                       </div>
 
@@ -3042,6 +3042,67 @@ export default function Page() {
                   </div>
                 </div>
 
+                
+                {/* Grupo de WhatsApp Oficial HAZE */}
+                <div className="md:col-span-2 p-6 rounded-3xl liquid-glass space-y-4 border border-emerald-500/30 bg-emerald-950/15">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                        <MessageSquare size={22} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-black text-white">Canal de Notificaciones WhatsApp HAZE</h3>
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                            Vinculado
+                          </span>
+                        </div>
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                          Grupo oficial de los fundadores para alertas de recaudos, cobros y solicitudes de firma mancomunada.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <a
+                        href={WHATSAPP_GROUP_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-black font-black text-xs transition active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                      >
+                        <ExternalLink size={14} />
+                        <span>Abrir Grupo en WhatsApp</span>
+                      </a>
+                      <button
+                        onClick={() => {
+                          const testAlert = [
+                            '🔔 *NOTIFICACIÓN DE PRUEBA · HAZE FINANCE*',
+                            '',
+                            '✅ El canal de WhatsApp de los fundadores está enlazado correctamente.',
+                            '⚡ Todas las operaciones registradas podrán notificarse directamente aquí con 1 clic.',
+                            '',
+                            '👉 https://dashboard-financiero-hazetech.vercel.app',
+                          ].join('\n')
+                          shareViaWhatsApp(testAlert)
+                        }}
+                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-zinc-200 text-xs font-bold transition active:scale-95"
+                      >
+                        <Share2 size={14} />
+                        <span>Enviar Alerta de Prueba</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-2xl bg-black/40 border border-white/[0.04] text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <span className="text-zinc-400 font-mono text-[11px] truncate max-w-lg">
+                      Enlace: {WHATSAPP_GROUP_URL}
+                    </span>
+                    <span className="text-emerald-400 font-bold text-[11px] flex items-center gap-1">
+                      <CheckCircle2 size={13} /> Sincronización Lista
+                    </span>
+                  </div>
+                </div>
+
                 <div className="p-6 rounded-3xl liquid-glass space-y-4">
                   <div className="flex items-center gap-3">
                     <Building2 className="text-purple-400" size={20} />
@@ -3065,7 +3126,49 @@ export default function Page() {
               </div>
             </div>
           )}
-        </main>
+        
+      {/* MODAL / TOAST FLOTANTE DE NOTIFICACIÓN DIRECTA A WHATSAPP */}
+      {whatsAppNotificationPrompt && (
+        <div className="fixed bottom-6 right-6 z-50 p-4 rounded-3xl bg-[#06110a] border border-emerald-500/50 shadow-[0_0_35px_rgba(16,185,129,0.35)] max-w-sm animate-fadeIn">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="size-9 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center shrink-0">
+                <MessageSquare size={18} />
+              </div>
+              <div>
+                <h4 className="text-xs font-black text-white">¿Notificar al Grupo de WhatsApp?</h4>
+                <p className="text-[10px] text-zinc-300 line-clamp-1 mt-0.5">
+                  Operación registrada: &ldquo;{whatsAppNotificationPrompt.concept}&rdquo;
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setWhatsAppNotificationPrompt(null)}
+              className="text-zinc-500 hover:text-white p-1"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={() => {
+                notifyMovementToWhatsApp(whatsAppNotificationPrompt)
+                setWhatsAppNotificationPrompt(null)
+              }}
+              className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:opacity-95 text-black font-black text-xs transition flex items-center justify-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+            >
+              <Send size={13} /> Enviar al Grupo
+            </button>
+            <button
+              onClick={() => setWhatsAppNotificationPrompt(null)}
+              className="py-2 px-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-zinc-400 hover:text-white text-xs font-bold"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+</main>
       </div>
 
       {/* MODAL 1: NUEVO MOVIMIENTO FINANCIERO */}

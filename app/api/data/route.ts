@@ -6,7 +6,6 @@ import path from 'path'
 let memoryDb: any = null
 
 function getDbFilePath(): string {
-  // En local o contenedor con disco escribible: ./data/haze-db.json
   const localDataDir = path.join(process.cwd(), 'data')
   try {
     if (!fs.existsSync(localDataDir)) {
@@ -14,166 +13,57 @@ function getDbFilePath(): string {
     }
     return path.join(localDataDir, 'haze-db.json')
   } catch {
-    // Si falla (por ejemplo en Vercel Serverless read-only), usamos /tmp
     return path.join('/tmp', 'haze-db.json')
   }
 }
 
+// BASE DE DATOS LIMPIA (SIN MOCK DATA)
 const DEFAULT_DB = {
-  movements: [
-    {
-      id: 'HAZE-910245',
-      type: 'Ingreso',
-      concept: 'Inyección de Capital Fundadores · Fase Semilla HAZE',
-      amount: 15000000,
-      category: 'Capital Propio de Fundadores',
-      sourceDestination: 'Bancolombia HAZE Tech',
-      justification: 'Aporte de capital semilla para desarrollo y operaciones iniciales.',
-      date: '28/10/2026',
-      time: '09:00 a. m.',
-      timestamp: 1793167200000,
-      registeredBy: 'Luis Alfonso Herrera',
-      status: 'Aprobado',
-      approvals: {
-        luis: 'Aprobado',
-        yoinner: 'Aprobado',
-      },
-    },
-    {
-      id: 'HAZE-834912',
-      type: 'Ingreso',
-      concept: 'Recaudo Facturación HazeCard NFC Pro',
-      amount: 1850000,
-      category: 'Venta HazeCard NFC',
-      sourceDestination: 'Pasarela Stripe / Wompi',
-      justification: 'Venta de lotes empresariales de tarjetas inteligentes NFC.',
-      date: '29/10/2026',
-      time: '11:30 a. m.',
-      timestamp: 1793262600000,
-      registeredBy: 'Yoinner Gándara',
-      status: 'Aprobado',
-      approvals: {
-        luis: 'Aprobado',
-        yoinner: 'Aprobado',
-      },
-    },
-    {
-      id: 'HAZE-742918',
-      type: 'Ingreso',
-      concept: 'Suscripciones Mensuales Plataforma Hazetech.co',
-      amount: 3200000,
-      category: 'Desarrollo Software / SaaS',
-      sourceDestination: 'Bancolombia HAZE Tech',
-      justification: 'Planes empresariales recurrentes de software.',
-      date: '29/10/2026',
-      time: '03:15 p. m.',
-      timestamp: 1793276100000,
-      registeredBy: 'Luis Alfonso Herrera',
-      status: 'Aprobado',
-      approvals: {
-        luis: 'Aprobado',
-        yoinner: 'Aprobado',
-      },
-    },
-    {
-      id: 'HAZE-621849',
-      type: 'Egreso',
-      concept: 'Infraestructura Cloud, Hosting & Servidores AWS/Vercel',
-      amount: 450000,
-      category: 'Infraestructura Tecnológica & Servidores',
-      sourceDestination: 'HazeCard NFC Débito',
-      justification: 'Renovación de servidores y dominios corporativos hazetech.co.',
-      date: '29/10/2026',
-      time: '05:40 p. m.',
-      timestamp: 1793284800000,
-      registeredBy: 'Yoinner Gándara',
-      status: 'Aprobado',
-      approvals: {
-        luis: 'Aprobado',
-        yoinner: 'Aprobado',
-      },
-    },
-  ],
-  investments: [
-    {
-      id: 'INV-101',
-      projectName: 'Producción y Chips NFC HazeCard Platinum',
-      stage: 'Fase Semilla',
-      investedAmount: 5000000,
-      returnedAmount: 11000000,
-      investor: 'Ambos (Capital HAZE)',
-      date: '15/10/2026',
-      time: '10:00 a. m.',
-      status: 'Completado',
-      notes: 'Inversión en manufactura de tarjetas NFC de lujo con tecnología de contacto.',
-    },
-    {
-      id: 'INV-102',
-      projectName: 'Plataforma SaaS hazetech.co & CRM Fundadores',
-      stage: 'Crecimiento Inicial',
-      investedAmount: 3500000,
-      returnedAmount: 5200000,
-      investor: 'Ambos (Capital HAZE)',
-      date: '20/10/2026',
-      time: '02:30 p. m.',
-      status: 'En Ejecución',
-      notes: 'Desarrollo del motor de software y pasarelas de pago automatizadas.',
-    },
-  ],
-  tasks: [
-    {
-      id: 'TASK-1',
-      title: 'Conciliar corte semanal de ventas HazeCard NFC',
-      estimatedAmount: 2500000,
-      priority: 'Alta',
-      assignedTo: 'Ambos',
-      completed: false,
-      dueDate: '2026-11-05',
-      createdAt: '29/10/2026',
-    },
-    {
-      id: 'TASK-2',
-      title: 'Aprobar pago de licencias de desarrollo y dominios hazetech.co',
-      estimatedAmount: 450000,
-      priority: 'Media',
-      assignedTo: 'Luis',
-      completed: true,
-      dueDate: '2026-10-31',
-      createdAt: '28/10/2026',
-    },
-    {
-      id: 'TASK-3',
-      title: 'Revisión de retorno de ganancias para reinversión en inventario',
-      estimatedAmount: 6000000,
-      priority: 'Alta',
-      assignedTo: 'Yoinner',
-      completed: false,
-      dueDate: '2026-11-10',
-      createdAt: '29/10/2026',
-    },
-  ],
+  movements: [],
+  investments: [],
+  tasks: [],
   notifications: [
     {
       id: 'NOTIF-INIT-1',
-      title: '💎 Base de Datos Permanente Conectada',
-      message: 'Todos los registros financieros, inversiones y firmas de Luis y Yoinner quedan respaldados permanentemente.',
+      title: '💎 Dashboard Financiero HAZE Activo',
+      message: 'Base de datos limpia y lista para operaciones reales. Control mancomunado (Luis y Yoinner) activo.',
       time: 'Ahora',
-      timestamp: Date.now(),
       type: 'approved',
-      amount: 15000000,
       read: false,
     },
   ],
 }
 
+// Lista negra de IDs de prueba anteriores para purgar si existieran
+const MOCK_IDS = new Set([
+  'HAZE-910245',
+  'HAZE-834912',
+  'HAZE-742918',
+  'HAZE-621849',
+  'INV-101',
+  'INV-102',
+  'TASK-1',
+  'TASK-2',
+  'TASK-3',
+])
+
 function readData() {
-  if (memoryDb) return memoryDb
+  if (memoryDb) {
+    // Purgar mock data de memoria si existiera
+    memoryDb.movements = (memoryDb.movements || []).filter((m: any) => !MOCK_IDS.has(m.id))
+    memoryDb.investments = (memoryDb.investments || []).filter((i: any) => !MOCK_IDS.has(i.id))
+    memoryDb.tasks = (memoryDb.tasks || []).filter((t: any) => !MOCK_IDS.has(t.id))
+    return memoryDb
+  }
 
   const filePath = getDbFilePath()
   try {
     if (fs.existsSync(filePath)) {
       const raw = fs.readFileSync(filePath, 'utf8')
       const parsed = JSON.parse(raw)
+      parsed.movements = (parsed.movements || []).filter((m: any) => !MOCK_IDS.has(m.id))
+      parsed.investments = (parsed.investments || []).filter((i: any) => !MOCK_IDS.has(i.id))
+      parsed.tasks = (parsed.tasks || []).filter((t: any) => !MOCK_IDS.has(t.id))
       memoryDb = parsed
       return parsed
     }
@@ -181,18 +71,21 @@ function readData() {
     console.warn('Error reading db file:', err)
   }
 
-  // Si no existe, inicializamos con los valores por defecto
   writeData(DEFAULT_DB)
   return DEFAULT_DB
 }
 
 function writeData(data: any) {
+  // Limpiar cualquier mock data antes de escribir
+  data.movements = (data.movements || []).filter((m: any) => !MOCK_IDS.has(m.id))
+  data.investments = (data.investments || []).filter((i: any) => !MOCK_IDS.has(i.id))
+  data.tasks = (data.tasks || []).filter((t: any) => !MOCK_IDS.has(t.id))
+
   memoryDb = data
   const filePath = getDbFilePath()
   try {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8')
   } catch (err) {
-    // Si falla en ruta normal, intenta en /tmp
     try {
       fs.writeFileSync(path.join('/tmp', 'haze-db.json'), JSON.stringify(data, null, 2), 'utf8')
     } catch {}
@@ -211,43 +104,23 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const current = readData()
 
-    // Realizar un merge inteligente por IDs para que NADA se sobreescriba ni se borre
-    const mergedMovements = [...(body.movements || [])]
-    // Asegurar que movimientos previos que no venían en el payload no se pierdan
-    current.movements?.forEach((existing: any) => {
-      if (!mergedMovements.some((m: any) => m.id === existing.id)) {
-        mergedMovements.push(existing)
-      }
-    })
+    if (body.action === 'purge_mock_data') {
+      writeData(DEFAULT_DB)
+      return NextResponse.json({ success: true, data: DEFAULT_DB })
+    }
 
-    const mergedInvestments = [...(body.investments || [])]
-    current.investments?.forEach((existing: any) => {
-      if (!mergedInvestments.some((inv: any) => inv.id === existing.id)) {
-        mergedInvestments.push(existing)
-      }
-    })
-
-    const mergedTasks = [...(body.tasks || [])]
-    current.tasks?.forEach((existing: any) => {
-      if (!mergedTasks.some((t: any) => t.id === existing.id)) {
-        mergedTasks.push(existing)
-      }
-    })
-
-    const mergedNotifications = [...(body.notifications || [])]
-    current.notifications?.forEach((existing: any) => {
-      if (!mergedNotifications.some((n: any) => n.id === existing.id)) {
-        mergedNotifications.push(existing)
-      }
-    })
+    // Filtrar cualquier mock data entrante
+    const cleanMovements = (body.movements || []).filter((m: any) => !MOCK_IDS.has(m.id))
+    const cleanInvestments = (body.investments || []).filter((i: any) => !MOCK_IDS.has(i.id))
+    const cleanTasks = (body.tasks || []).filter((t: any) => !MOCK_IDS.has(t.id))
+    const cleanNotifications = (body.notifications || []).slice(0, 50)
 
     const updatedData = {
-      movements: mergedMovements,
-      investments: mergedInvestments,
-      tasks: mergedTasks,
-      notifications: mergedNotifications.slice(0, 50), // Mantener las 50 más recientes
+      movements: cleanMovements,
+      investments: cleanInvestments,
+      tasks: cleanTasks,
+      notifications: cleanNotifications,
       lastUpdated: Date.now(),
     }
 
