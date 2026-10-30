@@ -97,6 +97,16 @@ export interface FinancialTask {
   createdAt: string
 }
 
+export interface AppNotification {
+  id: string
+  title: string
+  message: string
+  type: 'income' | 'expense' | 'approval_required' | 'approved' | 'rejected' | 'investment'
+  amount?: number
+  time: string
+  read: boolean
+}
+
 // Credenciales fijas de los dos fundadores (CLAVES OCULTAS EN LA UI)
 export const FOUNDERS = [
   {
@@ -152,7 +162,7 @@ const SOURCES_DESTINATIONS = [
   'Crypto / USDT Wallet',
 ]
 
-// SINTETIZADOR DE AUDIO WEB AUDIO API (Sonidos futuristas fintech)
+// SINTETIZADOR DE AUDIO WEB AUDIO API (Sonidos fintech avanzados)
 class SoundManager {
   private ctx: AudioContext | null = null
   private enabled: boolean = true
@@ -173,7 +183,7 @@ class SoundManager {
     if (typeof window !== 'undefined') {
       localStorage.setItem('haze_sound_enabled', String(this.enabled))
     }
-    if (this.enabled) this.playPop()
+    if (this.enabled) this.playNotification()
     return this.enabled
   }
 
@@ -205,12 +215,32 @@ class SoundManager {
     osc.stop(ctx.currentTime + 0.05)
   }
 
+  public playNotification() {
+    if (!this.enabled) return
+    const ctx = this.getContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+    const notes = [659.25, 783.99, 1046.5] // E5 -> G5 -> C6 chime
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, now + idx * 0.09)
+      gain.gain.setValueAtTime(0.12, now + idx * 0.09)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.3)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now + idx * 0.09)
+      osc.stop(now + idx * 0.09 + 0.3)
+    })
+  }
+
   public playSuccess() {
     if (!this.enabled) return
     const ctx = this.getContext()
     if (!ctx) return
     const now = ctx.currentTime
-    const notes = [587.33, 880] // D5 -> A5 chord
+    const notes = [587.33, 880] // D5 -> A5
     notes.forEach((freq, idx) => {
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
@@ -230,18 +260,18 @@ class SoundManager {
     const ctx = this.getContext()
     if (!ctx) return
     const now = ctx.currentTime
-    const chords = [523.25, 659.25, 783.99, 1046.5] // C E G C
+    const chords = [523.25, 659.25, 783.99, 1046.5, 1318.5] // C E G C E
     chords.forEach((freq, idx) => {
       const osc = ctx.createOscillator()
       const gain = ctx.createGain()
       osc.type = 'sine'
-      osc.frequency.setValueAtTime(freq, now + idx * 0.05)
-      gain.gain.setValueAtTime(0.1, now + idx * 0.05)
-      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.25)
+      osc.frequency.setValueAtTime(freq, now + idx * 0.04)
+      gain.gain.setValueAtTime(0.12, now + idx * 0.04)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.35)
       osc.connect(gain)
       gain.connect(ctx.destination)
-      osc.start(now + idx * 0.05)
-      osc.stop(now + idx * 0.05 + 0.25)
+      osc.start(now + idx * 0.04)
+      osc.stop(now + idx * 0.04 + 0.35)
     })
   }
 
@@ -275,6 +305,11 @@ export default function Page() {
   const [isClient, setIsClient] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
 
+  // Notificaciones & Drawer
+  const [notifications, setNotifications] = useState<AppNotification[]>([])
+  const [showNotificationsDrawer, setShowNotificationsDrawer] = useState(false)
+  const [desktopNotifPermission, setDesktopNotifPermission] = useState<NotificationPermission>('default')
+
   // Navegación
   const [activeTab, setActiveTab] = useState<'resumen' | 'movimientos' | 'aprobaciones' | 'inversiones' | 'pendientes' | 'reportes' | 'configuracion'>('resumen')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -286,13 +321,9 @@ export default function Page() {
   const [showBalance, setShowBalance] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
 
-  // Lista de Movimientos Financieros
+  // Datos financieros
   const [movements, setMovements] = useState<FinancialMovement[]>([])
-
-  // Lista de Inversiones por Etapa (ROI)
   const [investments, setInvestments] = useState<InvestmentStage[]>([])
-
-  // Lista de Tareas / Pendientes
   const [tasks, setTasks] = useState<FinancialTask[]>([])
 
   // Filtros
@@ -342,6 +373,10 @@ export default function Page() {
     setIsClient(true)
     setSoundEnabled(sounds.isEnabled())
 
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setDesktopNotifPermission(Notification.permission)
+    }
+
     const savedUser = localStorage.getItem('haze_founder_auth') as FounderId | null
     if (savedUser && (savedUser === 'luis' || savedUser === 'yoinner')) {
       setCurrentUser(savedUser)
@@ -365,6 +400,13 @@ export default function Page() {
     if (savedTasks) {
       try {
         setTasks(JSON.parse(savedTasks))
+      } catch {}
+    }
+
+    const savedNotifs = localStorage.getItem('haze_notifications_data')
+    if (savedNotifs) {
+      try {
+        setNotifications(JSON.parse(savedNotifs))
       } catch {}
     }
 
@@ -400,6 +442,12 @@ export default function Page() {
   }, [tasks, isClient])
 
   useEffect(() => {
+    if (isClient) {
+      localStorage.setItem('haze_notifications_data', JSON.stringify(notifications))
+    }
+  }, [notifications, isClient])
+
+  useEffect(() => {
     if (formData.type === 'Ingreso') {
       setFormData(prev => ({ ...prev, category: INCOME_CATEGORIES[0] }))
     } else {
@@ -407,17 +455,71 @@ export default function Page() {
     }
   }, [formData.type])
 
-  function notify(msg: string, type: 'pop' | 'success' | 'reject' | 'cash' = 'pop') {
+  function formatCOP(val: number) {
+    return `$ ${val.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`
+  }
+
+  // Notificación local con sonido + escritorio
+  function notify(msg: string, soundType: 'pop' | 'success' | 'reject' | 'cash' | 'chime' = 'pop') {
     setToast(msg)
-    if (type === 'success') sounds.playSuccess()
-    else if (type === 'cash') sounds.playCash()
-    else if (type === 'reject') sounds.playReject()
+    if (soundType === 'success') sounds.playSuccess()
+    else if (soundType === 'cash') sounds.playCash()
+    else if (soundType === 'chime') sounds.playNotification()
+    else if (soundType === 'reject') sounds.playReject()
     else sounds.playPop()
     window.setTimeout(() => setToast(null), 3500)
   }
 
-  function formatCOP(val: number) {
-    return `$ ${val.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`
+  // Despachador de notificaciones (in-app y escritorio)
+  function pushNotification(notif: Omit<AppNotification, 'id' | 'time' | 'read'>) {
+    const timeStr = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })
+    const newNotif: AppNotification = {
+      id: 'NOTIF-' + Date.now(),
+      ...notif,
+      time: timeStr,
+      read: false,
+    }
+
+    setNotifications(prev => [newNotif, ...prev])
+
+    // Sonido según el tipo
+    if (notif.type === 'income') {
+      sounds.playCash()
+    } else if (notif.type === 'approved' || notif.type === 'investment') {
+      sounds.playSuccess()
+    } else {
+      sounds.playNotification()
+    }
+
+    // Notificación nativa de escritorio si tiene permisos
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(notif.title, {
+          body: notif.message,
+          icon: '/haze-logo-circle.png',
+        })
+      } catch (err) {}
+    }
+  }
+
+  // Solicitar permiso de notificaciones de escritorio
+  function requestDesktopNotifications() {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      Notification.requestPermission().then(perm => {
+        setDesktopNotifPermission(perm)
+        if (perm === 'granted') {
+          notify('¡Notificaciones de escritorio activadas! Recibirás alertas instantáneas cuando entre dinero.', 'success')
+          new Notification('HAZE Finance', {
+            body: 'Notificaciones en tiempo real conectadas para Luis y Yoinner.',
+            icon: '/haze-logo-circle.png',
+          })
+        } else {
+          notify('Permiso no concedido para notificaciones de escritorio.', 'reject')
+        }
+      })
+    } else {
+      notify('Tu navegador no soporta notificaciones de escritorio.', 'reject')
+    }
   }
 
   // Login con PIN seguro (Sin mostrar clave en pantalla)
@@ -454,6 +556,10 @@ export default function Page() {
   const pendingMovements = useMemo(() => {
     return movements.filter(m => m.status === 'Pendiente')
   }, [movements])
+
+  const unreadNotificationsCount = useMemo(() => {
+    return notifications.filter(n => !n.read).length
+  }, [notifications])
 
   const totalIncome = useMemo(() => {
     return approvedMovements
@@ -590,7 +696,25 @@ export default function Page() {
     })
 
     const otherFounder = isLuis ? 'Yoinner Gándara' : 'Luis Alfonso Herrera'
-    notify(`Registrado con éxito a las ${autoTime}. Pendiente de la firma de ${otherFounder}.`, 'pop')
+
+    // Notificación sonora y de sistema
+    if (newMovement.type === 'Ingreso') {
+      pushNotification({
+        title: '💰 Nuevo Ingreso Registrado',
+        message: `${currentFounderObj.shortName} registró un ingreso de ${formatCOP(numAmount)} por "${newMovement.concept}". Requiere la firma de ${otherFounder}.`,
+        type: 'income',
+        amount: numAmount,
+      })
+      notify(`Ingreso de ${formatCOP(numAmount)} registrado a las ${autoTime}. Pendiente de firma.`, 'cash')
+    } else {
+      pushNotification({
+        title: '⚡ Firma Requerida para Egreso',
+        message: `${currentFounderObj.shortName} registró un egreso de ${formatCOP(numAmount)} por "${newMovement.concept}". Requiere tu validación.`,
+        type: 'approval_required',
+        amount: numAmount,
+      })
+      notify(`Egreso registrado a las ${autoTime}. Pendiente de firma de ${otherFounder}.`, 'chime')
+    }
   }
 
   // FIRMAR APROBACIÓN
@@ -601,6 +725,8 @@ export default function Page() {
       return
     }
 
+    let affectedMovement: FinancialMovement | null = null
+
     setMovements(prev =>
       prev.map(m => {
         if (m.id !== id) return m
@@ -609,16 +735,28 @@ export default function Page() {
           [founderId]: 'Aprobado' as const,
         }
         const bothApproved = newApprovals.luis === 'Aprobado' && newApprovals.yoinner === 'Aprobado'
-        return {
+        affectedMovement = {
           ...m,
           approvals: newApprovals,
           status: bothApproved ? 'Aprobado' : 'Pendiente',
         }
+        return affectedMovement
       })
     )
 
     const founderName = founderId === 'luis' ? 'Luis Alfonso' : 'Yoinner'
-    notify(`Firma de ${founderName} validada. ¡Operación conciliada!`, 'success')
+
+    if (affectedMovement && (affectedMovement as any).status === 'Aprobado') {
+      pushNotification({
+        title: '✅ ¡Operación Aprobada por Ambos!',
+        message: `La operación "${(affectedMovement as any).concept}" por ${formatCOP((affectedMovement as any).amount)} ya tiene ambas firmas y se acreditó al balance de HAZE.`,
+        type: 'approved',
+        amount: (affectedMovement as any).amount,
+      })
+      notify(`¡Doble firma completada! Acreditado en el balance general.`, 'cash')
+    } else {
+      notify(`Firma de ${founderName} validada con éxito.`, 'success')
+    }
   }
 
   // RECHAZAR
@@ -670,7 +808,6 @@ export default function Page() {
       notes: investForm.notes.trim() || 'Inversión de capital para impulso comercial.',
     }
 
-    // Registrar automáticamente también como Egreso para la contabilidad (pendiente de doble firma)
     const newMovement: FinancialMovement = {
       id: 'HAZE-' + Math.floor(100000 + Math.random() * 900000),
       type: 'Egreso',
@@ -699,6 +836,13 @@ export default function Page() {
       investedAmount: '',
       investor: 'Ambos (Capital HAZE)',
       notes: '',
+    })
+
+    pushNotification({
+      title: '📈 Nueva Inversión Iniciada',
+      message: `Se inyectó ${formatCOP(numAmount)} en "${newInvest.projectName}" (${newInvest.stage}).`,
+      type: 'investment',
+      amount: numAmount,
     })
     notify('Inversión creada y registrada en egresos para doble aprobación.', 'success')
   }
@@ -733,7 +877,6 @@ export default function Page() {
       })
     )
 
-    // Crear Ingreso correspondiente para el balance
     const newMovement: FinancialMovement = {
       id: 'HAZE-' + Math.floor(100000 + Math.random() * 900000),
       type: 'Ingreso',
@@ -757,7 +900,14 @@ export default function Page() {
     setShowReturnModal(false)
     setReturnForm({ returnAmount: '', notes: '' })
     setSelectedInvestmentForReturn(null)
-    notify(`Retorno de ${formatCOP(returnAmount)} registrado. Enviado a doble firma.`, 'cash')
+
+    pushNotification({
+      title: '💵 ¡Retorno de Inversión Recaudado!',
+      message: `Entraron ${formatCOP(returnAmount)} de ganancia por "${selectedInvestmentForReturn.projectName}".`,
+      type: 'income',
+      amount: returnAmount,
+    })
+    notify(`Retorno de ${formatCOP(returnAmount)} registrado con éxito.`, 'cash')
   }
 
   // TAREAS / PENDIENTES
@@ -809,6 +959,16 @@ export default function Page() {
     notify('Pendiente eliminado.', 'reject')
   }
 
+  function markAllNotificationsRead() {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+    sounds.playPop()
+  }
+
+  function clearNotifications() {
+    setNotifications([])
+    sounds.playReject()
+  }
+
   function exportCSV() {
     if (approvedMovements.length === 0) {
       notify('No hay movimientos aprobados para exportar.', 'reject')
@@ -834,14 +994,12 @@ export default function Page() {
   if (!currentUser) {
     return (
       <div className="relative min-h-screen bg-[#040508] text-[#f4f4f8] flex items-center justify-center p-4 selection:bg-purple-600/30">
-        {/* Luces y Efecto Liquid Glass Ambiental */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
           <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-b from-purple-900/20 via-emerald-950/15 to-transparent blur-[160px]" />
           <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-fuchsia-950/20 blur-[140px]" />
         </div>
 
         <div className="relative z-10 w-full max-w-md p-8 rounded-3xl liquid-glass liquid-shimmer space-y-6 text-center">
-          {/* Logo Oficial Recortado en Círculo */}
           <div className="flex flex-col items-center gap-3">
             <div className="relative size-24 rounded-full p-1 bg-gradient-to-tr from-emerald-500 via-violet-500 to-amber-500 shadow-[0_0_35px_rgba(16,185,129,0.35)] animate-pulse-glow">
               <div className="relative size-full rounded-full overflow-hidden bg-black">
@@ -868,7 +1026,7 @@ export default function Page() {
           </div>
 
           <p className="text-xs text-zinc-400">
-            Ingresa como fundador para gestionar el balance, auditar inversiones con ROI y firmar operaciones en Pesos (COP).
+            Ingresa como fundador para auditar el balance, recibir alertas de dinero entrante y firmar operaciones en Pesos (COP).
           </p>
 
           <form onSubmit={handleLogin} className="space-y-5 text-left">
@@ -900,7 +1058,6 @@ export default function Page() {
               </div>
             </div>
 
-            {/* PIN INPUT OCULTO (Sin mostrar la clave en el texto) */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
@@ -953,7 +1110,6 @@ export default function Page() {
 
   return (
     <div className="relative flex min-h-screen bg-[#040508] text-[#f4f4f8] selection:bg-purple-600/30 selection:text-purple-200">
-      {/* Luces y Efecto Liquid Glass Ambiental */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
         <div className="absolute -top-[25%] left-1/2 -translate-x-1/2 w-[1100px] h-[600px] bg-gradient-to-b from-purple-900/15 via-emerald-950/10 to-transparent blur-[160px]" />
         <div className="absolute top-[60%] -left-[20%] w-[650px] h-[650px] bg-purple-950/15 blur-[180px]" />
@@ -963,7 +1119,6 @@ export default function Page() {
 
       {/* Sidebar fijo en escritorio */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-[265px] flex-col border-r border-white/[0.08] bg-[#07080f]/80 backdrop-blur-2xl lg:flex">
-        {/* Logo Circular Oficial HAZE */}
         <div className="flex items-center gap-3.5 px-6 py-5 border-b border-white/[0.06]">
           <div className="relative size-11 rounded-full p-0.5 bg-gradient-to-tr from-emerald-500 via-violet-500 to-amber-500 shadow-[0_0_20px_rgba(16,185,129,0.35)] shrink-0">
             <div className="size-full rounded-full overflow-hidden bg-black">
@@ -987,7 +1142,7 @@ export default function Page() {
           </div>
         </div>
 
-        {/* Menú de Navegación con Efecto Glass */}
+        {/* Menú de Navegación */}
         <div className="flex-1 px-4 py-5 space-y-6 overflow-y-auto">
           <div>
             <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Módulos Financieros</p>
@@ -1141,6 +1296,126 @@ export default function Page() {
           </div>
 
           <div className="flex items-center gap-2.5">
+            {/* CAMPANA DE NOTIFICACIONES CON ALERTAS EN TIEMPO REAL */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  sounds.playPop()
+                  setShowNotificationsDrawer(!showNotificationsDrawer)
+                }}
+                className="relative p-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-300 hover:text-white hover:bg-white/[0.06] transition"
+                title="Centro de Notificaciones Financieras"
+              >
+                <Bell size={17} />
+                {unreadNotificationsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 text-black font-black text-[10px] shadow-[0_0_12px_rgba(16,185,129,0.7)]">
+                    {unreadNotificationsCount}
+                  </span>
+                )}
+              </button>
+
+              {/* DROPDOWN DE NOTIFICACIONES */}
+              {showNotificationsDrawer && (
+                <div className="absolute right-0 top-12 w-80 sm:w-96 p-4 rounded-3xl liquid-glass shadow-2xl z-50 space-y-3 animate-fadeIn">
+                  <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
+                    <div className="flex items-center gap-2">
+                      <Bell size={15} className="text-emerald-400" />
+                      <h4 className="text-xs font-black text-white">Notificaciones Financieras</h4>
+                      {unreadNotificationsCount > 0 && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-300 border border-emerald-500/30 font-bold">
+                          {unreadNotificationsCount} nuevas
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {unreadNotificationsCount > 0 && (
+                        <button
+                          onClick={markAllNotificationsRead}
+                          className="text-[10px] text-purple-400 hover:underline"
+                        >
+                          Marcar leídas
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setShowNotificationsDrawer(false)}
+                        className="text-zinc-400 hover:text-white p-1"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Botón de Escritorio */}
+                  {desktopNotifPermission !== 'granted' && (
+                    <button
+                      onClick={requestDesktopNotifications}
+                      className="w-full py-2 px-3 rounded-xl bg-purple-950/40 border border-purple-500/30 text-[11px] font-bold text-purple-200 hover:bg-purple-900/40 transition flex items-center justify-center gap-2"
+                    >
+                      <Zap size={13} className="text-amber-400" /> Activar Notificaciones de Escritorio
+                    </button>
+                  )}
+
+                  <div className="max-h-72 overflow-y-auto space-y-2 pr-1">
+                    {notifications.length === 0 ? (
+                      <div className="py-8 text-center text-xs text-zinc-400">
+                        <p className="font-semibold text-zinc-300">Bandeja al día</p>
+                        <p className="text-[11px] mt-0.5">Recibirás alertas cuando ingrese dinero o se requiera tu firma.</p>
+                      </div>
+                    ) : (
+                      notifications.map(n => (
+                        <div
+                          key={n.id}
+                          onClick={() => {
+                            setNotifications(prev =>
+                              prev.map(item => item.id === n.id ? { ...item, read: true } : item)
+                            )
+                            if (n.type === 'approval_required') {
+                              setActiveTab('aprobaciones')
+                              setShowNotificationsDrawer(false)
+                            } else if (n.type === 'income') {
+                              setActiveTab('movimientos')
+                              setShowNotificationsDrawer(false)
+                            }
+                          }}
+                          className={`p-3 rounded-2xl border transition cursor-pointer text-xs ${
+                            n.read
+                              ? 'border-white/[0.04] bg-white/[0.01] opacity-70'
+                              : 'border-emerald-500/30 bg-emerald-950/20 shadow-[0_0_12px_rgba(16,185,129,0.1)]'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-bold text-white text-[11px] flex items-center gap-1.5">
+                              {n.type === 'income' && <span className="size-1.5 rounded-full bg-emerald-400" />}
+                              {n.type === 'approval_required' && <span className="size-1.5 rounded-full bg-amber-400" />}
+                              {n.title}
+                            </p>
+                            <span className="text-[9px] text-zinc-400 shrink-0">{n.time}</span>
+                          </div>
+                          <p className="text-[10px] text-zinc-300 mt-1 leading-relaxed">{n.message}</p>
+                          {n.amount && (
+                            <p className="text-[10px] font-black text-emerald-400 mt-1">
+                              +{formatCOP(n.amount)}
+                            </p>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {notifications.length > 0 && (
+                    <div className="pt-2 border-t border-white/[0.06] text-center">
+                      <button
+                        onClick={clearNotifications}
+                        className="text-[10px] text-zinc-400 hover:text-rose-400 transition"
+                      >
+                        Limpiar historial de alertas
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             {/* Toggle de Sonido */}
             <button
               onClick={() => {
@@ -1148,7 +1423,7 @@ export default function Page() {
                 setSoundEnabled(next)
                 notify(next ? 'Sonidos activados 🔊' : 'Sonidos desactivados 🔇')
               }}
-              className="p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white transition"
+              className="p-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white transition"
               title={soundEnabled ? 'Silenciar sonidos' : 'Activar efectos de sonido'}
             >
               {soundEnabled ? <Volume2 size={16} className="text-emerald-400" /> : <VolumeX size={16} />}
@@ -1195,7 +1470,7 @@ export default function Page() {
                     Finanzas & Capital <span className="bg-gradient-to-r from-emerald-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Haze Technologies</span>
                   </h2>
                   <p className="mt-1 text-xs md:text-sm text-zinc-400 max-w-xl">
-                    Control mancomunado en Pesos (COP). Retornos de inversión, compromisos financieros y auditoría en tiempo real.
+                    Control mancomunado en Pesos (COP). Retornos de inversión, compromisos financieros y auditoría en tiempo real con notificaciones.
                   </p>
                 </div>
 
@@ -1215,7 +1490,6 @@ export default function Page() {
 
               {/* 4 Métricas Principales en PESOS (COP) con Liquid Glass */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                {/* Balance Disponible */}
                 <div className="p-5 rounded-3xl liquid-glass hover:border-emerald-500/40 transition shadow-lg relative overflow-hidden group">
                   <div className="flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Balance Disponible</p>
@@ -1236,7 +1510,6 @@ export default function Page() {
                   </div>
                 </div>
 
-                {/* Ingresos Aprobados */}
                 <div className="p-5 rounded-3xl liquid-glass hover:border-emerald-500/40 transition shadow-lg relative overflow-hidden">
                   <div className="flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Ingresos Validados</p>
@@ -1254,7 +1527,6 @@ export default function Page() {
                   </div>
                 </div>
 
-                {/* Egresos Aprobados */}
                 <div className="p-5 rounded-3xl liquid-glass hover:border-rose-500/40 transition shadow-lg relative overflow-hidden">
                   <div className="flex items-center justify-between">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Egresos Validados</p>
@@ -1272,7 +1544,6 @@ export default function Page() {
                   </div>
                 </div>
 
-                {/* Inversión & ROI Global */}
                 <div
                   onClick={() => {
                     sounds.playPop()
@@ -1299,7 +1570,6 @@ export default function Page() {
 
               {/* Gráficas: Flujo en COP & Distribución */}
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                {/* Flujo de Caja Semestral SVG Interactivo */}
                 <div className="xl:col-span-2 p-6 rounded-3xl liquid-glass space-y-5">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1352,7 +1622,6 @@ export default function Page() {
                   </p>
                 </div>
 
-                {/* Donut de Distribución */}
                 <div className="p-6 rounded-3xl liquid-glass flex flex-col justify-between space-y-6">
                   <div>
                     <div className="flex items-center justify-between">
@@ -1393,7 +1662,7 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* Mini Widget de Compromisos y Tareas Financieras */}
+              {/* Mini Widget de Compromisos Financieros */}
               <div className="p-6 rounded-3xl liquid-glass space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -1696,7 +1965,6 @@ export default function Page() {
                             </span>
                           </div>
 
-                          {/* Comparativa Invertido vs Retornado */}
                           <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-black/40 border border-white/[0.04] text-xs">
                             <div>
                               <p className="text-[10px] text-zinc-400">Capital Invertido:</p>
@@ -1708,7 +1976,6 @@ export default function Page() {
                             </div>
                           </div>
 
-                          {/* Barra de Progreso de Retorno */}
                           <div className="space-y-1.5">
                             <div className="flex justify-between text-xs">
                               <span className="text-[11px] text-zinc-400">Recuperación de Capital:</span>
@@ -1722,7 +1989,6 @@ export default function Page() {
                             </div>
                           </div>
 
-                          {/* Métricas de Ganancia Neta y ROI */}
                           <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] text-xs">
                             <div>
                               <p className="text-[10px] text-zinc-400">Ganancia Neta:</p>
@@ -1739,7 +2005,6 @@ export default function Page() {
                             </div>
                           </div>
 
-                          {/* Botón para ingresar ganancia / retorno */}
                           <button
                             onClick={() => {
                               sounds.playPop()
@@ -1759,7 +2024,7 @@ export default function Page() {
             </div>
           )}
 
-          {/* SECCIÓN 4: LISTA DE PENDIENTES & COMPROMISOS FINANCIEROS */}
+          {/* SECCIÓN 4: LISTA DE PENDIENTES & COMPROMISOS */}
           {activeTab === 'pendientes' && (
             <div className="space-y-6 animate-fadeIn">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl liquid-glass">
@@ -1951,7 +2216,6 @@ export default function Page() {
                         </div>
                       </div>
 
-                      {/* Firmas requeridas */}
                       <div className="pt-2 border-t border-white/[0.06] space-y-2.5">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
                           Firmas Mancomunadas Requeridas
@@ -2116,7 +2380,6 @@ export default function Page() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Claves Protegidas */}
                 <div className="p-6 rounded-3xl liquid-glass space-y-4">
                   <div className="flex items-center gap-3">
                     <KeyRound className="text-emerald-400" size={20} />
@@ -2145,7 +2408,6 @@ export default function Page() {
                   </div>
                 </div>
 
-                {/* Reglas del Sistema */}
                 <div className="p-6 rounded-3xl liquid-glass space-y-4">
                   <div className="flex items-center gap-3">
                     <Building2 className="text-purple-400" size={20} />
@@ -2172,7 +2434,7 @@ export default function Page() {
         </main>
       </div>
 
-      {/* MODAL 1: NUEVO MOVIMIENTO FINANCIERO (Fecha y hora automáticas) */}
+      {/* MODAL 1: NUEVO MOVIMIENTO FINANCIERO */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <div className="relative w-full max-w-lg rounded-3xl liquid-glass p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
