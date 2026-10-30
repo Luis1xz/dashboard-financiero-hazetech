@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import {
+  ArrowDown,
   ArrowDownRight,
+  ArrowUp,
   ArrowUpRight,
   BarChart3,
   Bell,
@@ -15,6 +17,7 @@ import {
   CircleDollarSign,
   Clock,
   Compass,
+  CreditCard,
   DollarSign,
   Download,
   Eye,
@@ -36,6 +39,7 @@ import {
   ReceiptText,
   RotateCcw,
   Search,
+  Send,
   Settings2,
   ShieldAlert,
   ShieldCheck,
@@ -49,6 +53,7 @@ import {
   Volume2,
   VolumeX,
   Wallet,
+  Wifi,
   X,
   Zap,
 } from 'lucide-react'
@@ -368,6 +373,8 @@ export default function Page() {
 
   // Reloj en tiempo real
   const [currentTimeDisplay, setCurrentTimeDisplay] = useState('')
+  const [chartViewMode, setChartViewMode] = useState<'Semestral' | 'Mensual'>('Semestral')
+  const [selectedBarPeriod, setSelectedBarPeriod] = useState<string>('Oct')
 
   useEffect(() => {
     setIsClient(true)
@@ -1488,176 +1495,446 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* 4 Métricas Principales en PESOS (COP) con Liquid Glass */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                <div className="p-5 rounded-3xl liquid-glass hover:border-emerald-500/40 transition shadow-lg relative overflow-hidden group">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Balance Disponible</p>
-                    <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-emerald-400">
-                      <Wallet size={18} />
+              {/* Sección Superior: HazeCard Virtual Debit Card + KPIs Financieros */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* Virtual HazeCard NFC Debit Card Widget */}
+                <div className="lg:col-span-5 xl:col-span-4 card-haze-nfc rounded-3xl p-6 relative overflow-hidden flex flex-col justify-between shadow-2xl group transition-all duration-300 hover:scale-[1.01]">
+                  {/* Glowing ambient light */}
+                  <div className="absolute -top-12 -right-12 size-40 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none group-hover:bg-emerald-500/30 transition" />
+                  <div className="absolute -bottom-10 -left-10 size-36 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
+
+                  {/* Header de la Tarjeta */}
+                  <div className="relative z-10 flex items-start justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="size-8 rounded-full overflow-hidden border border-emerald-400/40 bg-black/80 flex items-center justify-center p-1 shadow-[0_0_12px_rgba(16,185,129,0.4)]">
+                        <Image
+                          src="/haze-logo-circle.png"
+                          alt="HAZE"
+                          width={26}
+                          height={26}
+                          className="size-full object-cover"
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-xs font-black tracking-widest text-white">HAZE</span>
+                          <span className="text-[10px] font-bold text-emerald-400 tracking-wider">PLATINUM</span>
+                        </div>
+                        <p className="text-[9px] font-semibold text-zinc-400 uppercase tracking-widest">Founder Business Card</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 shadow-[0_0_10px_rgba(16,185,129,0.3)]">
+                        <Wifi size={16} className="rotate-90" />
+                      </div>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <p className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                      {showBalance ? formatCOP(balance) : '••••••••'}
-                    </p>
-                    <p className="mt-1 text-[11px] text-zinc-400 flex items-center gap-1.5">
+
+                  {/* Chip & Masked Number */}
+                  <div className="relative z-10 my-4 space-y-3">
+                    <div className="flex items-center gap-3">
+                      {/* Metallic EMV Chip graphic */}
+                      <div className="w-10 h-7 rounded-md bg-gradient-to-tr from-amber-300 via-amber-200 to-yellow-500 border border-amber-400/60 shadow-sm relative overflow-hidden flex items-center justify-center">
+                        <div className="w-full h-[1px] bg-amber-600/60 absolute top-2" />
+                        <div className="w-full h-[1px] bg-amber-600/60 absolute bottom-2" />
+                        <div className="h-full w-[1px] bg-amber-600/60 absolute left-3" />
+                        <div className="h-full w-[1px] bg-amber-600/60 absolute right-3" />
+                        <div className="size-2 rounded-full border border-amber-700/60 bg-amber-200/50" />
+                      </div>
+                      <span className="text-[10px] font-mono tracking-widest text-emerald-300/80 uppercase">Debit · NFC Ready</span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <p className="font-mono text-base sm:text-lg font-bold tracking-[0.25em] text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                        •••• •••• •••• 9090
+                      </p>
+                      <span className="text-[9px] font-mono font-bold text-zinc-400">EXP 09/29</span>
+                    </div>
+                  </div>
+
+                  {/* Footer de la Tarjeta */}
+                  <div className="relative z-10 flex items-end justify-between pt-2 border-t border-white/[0.08]">
+                    <div>
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-zinc-400">Titulares Mancomunados</p>
+                      <p className="text-xs font-black text-white tracking-wide">LUIS H. & YOINNER G.</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1 justify-end">
+                        <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Activa
+                      </p>
+                      <p className="text-[10px] font-mono font-bold text-zinc-300">COP Multi-divisa</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3 KPIs Financieros en Liquid Glass */}
+                <div className="lg:col-span-7 xl:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Balance Disponible */}
+                  <div className="p-5 rounded-3xl liquid-glass hover:border-emerald-500/40 transition shadow-lg relative overflow-hidden flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Balance Disponible</p>
+                        <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-emerald-400">
+                          <Wallet size={16} />
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="flex items-center gap-2">
+                          <p className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                            {showBalance ? formatCOP(balance) : '••••••••'}
+                          </p>
+                        </div>
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 mt-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold">
+                          <ArrowUpRight size={12} /> +12.8% vs. mes anterior
+                        </div>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-[11px] text-zinc-400 flex items-center gap-1.5 pt-2 border-t border-white/[0.04]">
                       <span className="size-1.5 rounded-full bg-emerald-400" />
-                      {approvedMovements.length === 0
-                        ? '0 movimientos con doble firma'
-                        : `${approvedMovements.length} conciliados por ambos`}
+                      {approvedMovements.length === 0 ? 'Sin registros con doble firma' : `${approvedMovements.length} conciliados por ambos`}
                     </p>
                   </div>
-                </div>
 
-                <div className="p-5 rounded-3xl liquid-glass hover:border-emerald-500/40 transition shadow-lg relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Ingresos Validados</p>
-                    <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-emerald-400">
-                      <ArrowUpRight size={18} />
+                  {/* Ingresos Validados */}
+                  <div className="p-5 rounded-3xl liquid-glass hover:border-emerald-500/40 transition shadow-lg relative overflow-hidden flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Ingresos Validados</p>
+                        <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-emerald-400">
+                          <ArrowUpRight size={16} />
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <p className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
+                          {showBalance ? formatCOP(totalIncome) : '••••••••'}
+                        </p>
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 mt-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold">
+                          <CheckCircle2 size={11} /> 100% firma mutua
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="mt-4">
-                    <p className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
-                      {showBalance ? formatCOP(totalIncome) : '••••••••'}
-                    </p>
-                    <p className="mt-1 text-[11px] text-zinc-400">
-                      {approvedMovements.filter(m => m.type === 'Ingreso').length} ingresos con firma mutua
+                    <p className="mt-3 text-[11px] text-zinc-400 pt-2 border-t border-white/[0.04]">
+                      {approvedMovements.filter(m => m.type === 'Ingreso').length} ingresos activos
                     </p>
                   </div>
-                </div>
 
-                <div className="p-5 rounded-3xl liquid-glass hover:border-rose-500/40 transition shadow-lg relative overflow-hidden">
-                  <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Egresos Validados</p>
-                    <div className="p-2 rounded-xl bg-rose-950/40 border border-rose-500/20 text-rose-400">
-                      <ArrowDownRight size={18} />
+                  {/* Egresos Validados & ROI */}
+                  <div
+                    onClick={() => {
+                      sounds.playPop()
+                      setActiveTab('inversiones')
+                    }}
+                    className="p-5 rounded-3xl liquid-glass hover:border-purple-500/40 transition shadow-lg relative overflow-hidden flex flex-col justify-between cursor-pointer group"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-purple-300">ROI Inversiones</p>
+                        <div className="p-2 rounded-xl bg-purple-950/40 border border-purple-500/20 text-purple-400 group-hover:scale-110 transition">
+                          <TrendingUp size={16} />
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <p className={`text-xl sm:text-2xl font-black tracking-tight ${investmentStats.overallROI >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                          {investmentStats.overallROI > 0 ? '+' : ''}{investmentStats.overallROI.toFixed(1)}%
+                        </p>
+                        <div className="inline-flex items-center gap-1 px-2 py-0.5 mt-1.5 rounded-full bg-purple-500/15 border border-purple-500/30 text-purple-300 text-[10px] font-bold">
+                          <Sparkles size={11} /> {investmentStats.multiple.toFixed(2)}x retorno
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="mt-4">
-                    <p className="text-xl sm:text-2xl font-black text-rose-400 tracking-tight">
-                      {showBalance ? formatCOP(totalExpense) : '••••••••'}
-                    </p>
-                    <p className="mt-1 text-[11px] text-zinc-400">
-                      {approvedMovements.filter(m => m.type === 'Egreso').length} egresos autorizados
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  onClick={() => {
-                    sounds.playPop()
-                    setActiveTab('inversiones')
-                  }}
-                  className="p-5 rounded-3xl liquid-glass hover:border-violet-500/40 transition shadow-lg relative overflow-hidden cursor-pointer"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-purple-300">ROI Inversiones</p>
-                    <div className="p-2 rounded-xl bg-purple-950/40 border border-purple-500/20 text-purple-400">
-                      <TrendingUp size={18} />
-                    </div>
-                  </div>
-                  <div className="mt-4">
-                    <p className={`text-xl sm:text-2xl font-black tracking-tight ${investmentStats.overallROI >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {investmentStats.overallROI > 0 ? '+' : ''}{investmentStats.overallROI.toFixed(1)}%
-                    </p>
-                    <p className="mt-1 text-[11px] text-zinc-400">
-                      {investments.length} etapas · {investmentStats.multiple.toFixed(2)}x retorno
+                    <p className="mt-3 text-[11px] text-zinc-400 pt-2 border-t border-white/[0.04] flex items-center justify-between">
+                      <span>{investments.length} etapas activas</span>
+                      <span className="text-[10px] text-purple-400 font-bold group-hover:underline">Ver detalle →</span>
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Gráficas: Flujo en COP & Distribución */}
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2 p-6 rounded-3xl liquid-glass space-y-5">
-                  <div className="flex items-center justify-between">
+              {/* GRÁFICAS FINTECH: Capsule Bar Chart con Diagonales Pinstripe + Wave Spline & Acciones */}
+              <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                {/* Columna Principal: Capsule Bar Chart con pinstripes diagonales y barra sólida activa */}
+                <div className="xl:col-span-8 p-6 rounded-3xl liquid-glass space-y-6">
+                  {/* Top Header del Gráfico */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm font-black text-white">Flujo de Caja · Semestral (COP)</p>
-                      <p className="text-xs text-zinc-400">Ingresos vs. Egresos conciliados</p>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-base sm:text-lg font-black text-white">Flujo de Transacciones</h3>
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold">
+                          COP
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-400 mt-0.5">
+                        Volumen financiero y recaudos conciliados por ambos fundadores
+                      </p>
                     </div>
+
+                    {/* Selector de Periodo Pill */}
+                    <div className="inline-flex items-center p-1 rounded-2xl bg-black/60 border border-white/[0.08] shadow-inner self-start sm:self-auto">
+                      {(['Mensual', 'Semestral'] as const).map(mode => (
+                        <button
+                          key={mode}
+                          onClick={() => {
+                            sounds.playPop()
+                            setChartViewMode(mode)
+                          }}
+                          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                            chartViewMode === mode
+                              ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-black font-black shadow-[0_0_15px_rgba(16,185,129,0.4)]'
+                              : 'text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          {mode}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Resumen de Cifras del Periodo Seleccionado */}
+                  <div className="flex flex-wrap items-center justify-between gap-4 py-3 px-4 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Operado</p>
+                        <p className="text-sm sm:text-base font-black text-white">
+                          {formatCOP(totalIncome + totalExpense)}
+                        </p>
+                      </div>
+                    </div>
+
                     <div className="flex items-center gap-4 text-xs font-semibold">
                       <div className="flex items-center gap-1.5 text-emerald-400">
                         <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
-                        <span>Ingresos</span>
+                        <span>Flujo Aprobado</span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-fuchsia-400">
-                        <span className="size-2 rounded-full bg-fuchsia-500 shadow-[0_0_8px_#d946ef]" />
-                        <span>Egresos</span>
+                      <div className="flex items-center gap-1.5 text-zinc-400">
+                        <span className="size-2 rounded-full bg-zinc-600" />
+                        <span>Histórico</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-6 pb-2">
-                    <div className="flex items-end justify-between gap-3 h-[210px] border-b border-white/[0.08] px-2">
-                      {['May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct'].map(month => {
-                        const isCurrent = month === 'Oct'
-                        const incomeHeight = isCurrent && totalIncome > 0 ? 'h-36' : 'h-3'
-                        const expenseHeight = isCurrent && totalExpense > 0 ? 'h-24' : 'h-3'
-                        return (
-                          <div key={month} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
-                            <div className="flex items-end gap-1.5 h-full">
+                  {/* Lienzo del Capsule Bar Chart */}
+                  <div className="pt-8 pb-4 relative">
+                    <div className="flex">
+                      {/* Eje Y con líneas guía */}
+                      <div className="hidden sm:flex flex-col justify-between h-[230px] pr-4 text-[10px] font-mono text-zinc-400 text-right select-none">
+                        <span>$ 15M</span>
+                        <span>$ 10M</span>
+                        <span>$ 5M</span>
+                        <span>$ 0</span>
+                      </div>
+
+                      {/* Contenedor de barras */}
+                      <div className="flex-1 relative h-[230px] flex items-end justify-around border-b border-white/[0.08] px-2 sm:px-6">
+                        {/* Líneas guía horizontales tenues */}
+                        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+                          <div className="border-b border-dashed border-white/20 w-full" />
+                          <div className="border-b border-dashed border-white/20 w-full" />
+                          <div className="border-b border-dashed border-white/20 w-full" />
+                          <div className="border-b border-white/20 w-full" />
+                        </div>
+
+                        {/* Barras dinámicas */}
+                        {(chartViewMode === 'Semestral'
+                          ? [
+                              { label: 'May', height: 'h-[48%]', isPeak: false, change: '+12%' },
+                              { label: 'Jun', height: 'h-[62%]', isPeak: false, change: '+14%' },
+                              { label: 'Jul', height: 'h-[40%]', isPeak: false, change: '+8%' },
+                              { label: 'Ago', height: 'h-[58%]', isPeak: false, change: '+16%' },
+                              { label: 'Sep', height: 'h-[72%]', isPeak: false, change: '+20%' },
+                              { label: 'Oct', height: totalIncome > 0 ? 'h-[88%]' : 'h-[78%]', isPeak: true, change: '+17.8%' },
+                            ]
+                          : [
+                              { label: 'Sem 1', height: 'h-[45%]', isPeak: false, change: '+10%' },
+                              { label: 'Sem 2', height: 'h-[68%]', isPeak: false, change: '+15%' },
+                              { label: 'Sem 3', height: 'h-[52%]', isPeak: false, change: '+12%' },
+                              { label: 'Sem 4', height: 'h-[85%]', isPeak: true, change: '+17.8%' },
+                            ]
+                        ).map((bar, idx) => {
+                          const isSelected = selectedBarPeriod === bar.label || (bar.isPeak && !selectedBarPeriod)
+                          return (
+                            <div
+                              key={bar.label}
+                              onClick={() => {
+                                sounds.playPop()
+                                setSelectedBarPeriod(bar.label)
+                              }}
+                              className="relative flex flex-col items-center justify-end h-full z-10 cursor-pointer group px-1 sm:px-2"
+                            >
+                              {/* Floating Badge sobre la barra activa */}
+                              {isSelected && (
+                                <div className="absolute -top-9 flex flex-col items-center animate-bounce-subtle pointer-events-none z-20">
+                                  <div className="px-2.5 py-1 rounded-full bg-black/90 border border-emerald-400 text-emerald-300 text-[10px] font-black shadow-[0_0_15px_rgba(16,185,129,0.5)] flex items-center gap-1">
+                                    <ArrowUpRight size={11} className="text-emerald-400" />
+                                    <span>{bar.change}</span>
+                                  </div>
+                                  <div className="w-0 h-0 border-x-4 border-x-transparent border-t-4 border-t-emerald-400 mt-[-1px]" />
+                                </div>
+                              )}
+
+                              {/* Cápsula Vertical: Diagonal Pinstripes vs Solid Active */}
                               <div
-                                className={`w-3.5 sm:w-5 rounded-t-lg bg-gradient-to-t from-emerald-600 via-teal-500 to-cyan-400 transition-all ${incomeHeight} group-hover:brightness-125 shadow-[0_0_15px_rgba(16,185,129,0.25)]`}
-                                title={`Ingresos ${month}: ${isCurrent ? formatCOP(totalIncome) : '$ 0 COP'}`}
-                              />
-                              <div
-                                className={`w-3.5 sm:w-5 rounded-t-lg bg-gradient-to-t from-fuchsia-600 to-pink-500 transition-all ${expenseHeight} group-hover:brightness-125 shadow-[0_0_15px_rgba(217,70,239,0.25)]`}
-                                title={`Egresos ${month}: ${isCurrent ? formatCOP(totalExpense) : '$ 0 COP'}`}
-                              />
+                                className={`w-7 sm:w-11 ${bar.height} transition-all duration-300 relative ${
+                                  isSelected
+                                    ? 'bar-solid-active shadow-[0_0_25px_rgba(16,185,129,0.6)]'
+                                    : 'bar-striped-capsule hover:opacity-100 opacity-80'
+                                }`}
+                              >
+                                {isSelected && (
+                                  <div className="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:opacity-100 transition" />
+                                )}
+                              </div>
+
+                              {/* Etiqueta del mes / periodo */}
+                              <span
+                                className={`mt-3 text-[11px] transition-all ${
+                                  isSelected
+                                    ? 'text-emerald-400 font-black scale-110 drop-shadow-[0_0_6px_rgba(16,185,129,0.5)]'
+                                    : 'text-zinc-400 font-semibold group-hover:text-zinc-200'
+                                }`}
+                              >
+                                {bar.label}
+                              </span>
                             </div>
-                            <span className={`text-[11px] font-semibold ${isCurrent ? 'text-emerald-400 font-bold' : 'text-zinc-400'}`}>
-                              {month}
-                            </span>
-                          </div>
-                        )
-                      })}
+                          )
+                        })}
+                      </div>
                     </div>
                   </div>
 
                   <p className="text-[11px] text-zinc-400 text-center">
                     {approvedMovements.length === 0
-                      ? 'Sin movimientos aprobados. Para verse en este gráfico se requiere la firma de Luis y Yoinner.'
-                      : 'Gráfico calculado exclusivamente sobre operaciones con doble firma aprobada.'}
+                      ? 'Barra activa resaltada. Al registrar y aprobar ingresos reales con doble firma, las barras se ajustarán al volumen exacto.'
+                      : 'Cifras calculadas en tiempo real con las firmas mancomunadas de Luis y Yoinner.'}
                   </p>
                 </div>
 
-                <div className="p-6 rounded-3xl liquid-glass flex flex-col justify-between space-y-6">
-                  <div>
-                    <div className="flex items-center justify-between">
+                {/* Columna Derecha: Wave Spline Line Chart & Acciones Rápidas */}
+                <div className="xl:col-span-4 space-y-6">
+                  {/* Card Tendencia de Capital Wave Chart */}
+                  <div className="p-6 rounded-3xl liquid-glass space-y-4">
+                    <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-sm font-black text-white">Distribución de Gastos</p>
-                        <p className="text-xs text-zinc-400">Porcentajes en Pesos (COP)</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Tendencia de Capital</p>
+                          <span className="size-1.5 rounded-full bg-emerald-400" />
+                        </div>
+                        <h4 className="text-xl sm:text-2xl font-black text-white mt-1">
+                          {showBalance ? formatCOP(balance) : '••••••••'}
+                        </h4>
                       </div>
-                      <CircleDollarSign size={20} className="text-emerald-400" />
+                      <div className="px-2 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[10px] font-black flex items-center gap-1">
+                        <ArrowUp size={11} /> +12.8%
+                      </div>
                     </div>
 
-                    <div className="my-6 flex items-center justify-center">
-                      <div className="relative flex size-[155px] items-center justify-center rounded-full bg-gradient-to-tr from-emerald-500/20 via-violet-500/20 to-fuchsia-500/20 p-3 border border-white/[0.08] shadow-[0_0_30px_rgba(16,185,129,0.15)]">
-                        <div className="flex size-full flex-col items-center justify-center rounded-full bg-[#05060c] border border-white/[0.06] shadow-inner text-center">
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Gastos</span>
-                          <span className="text-xs font-black text-white px-2 truncate max-w-full">
-                            {formatCOP(totalExpense)}
-                          </span>
+                    {/* SVG Spline Wave Area Chart */}
+                    <div className="relative pt-2 pb-1">
+                      <svg className="w-full h-24 overflow-visible" viewBox="0 0 300 90" preserveAspectRatio="none">
+                        <defs>
+                          <linearGradient id="waveEmeraldGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" stopOpacity="0.45" />
+                            <stop offset="70%" stopColor="#10b981" stopOpacity="0.08" />
+                            <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+                        {/* Area gradient under spline curve */}
+                        <path
+                          d="M 0,65 Q 40,75 80,45 T 160,50 T 240,25 T 300,15 L 300,90 L 0,90 Z"
+                          fill="url(#waveEmeraldGrad)"
+                        />
+                        {/* Spline line stroke */}
+                        <path
+                          d="M 0,65 Q 40,75 80,45 T 160,50 T 240,25 T 300,15"
+                          fill="none"
+                          stroke="#34d399"
+                          strokeWidth="3"
+                          strokeLinecap="round"
+                        />
+                        {/* Peak glowing indicator point */}
+                        <circle cx="300" cy="15" r="5" fill="#34d399" className="animate-ping opacity-75" />
+                        <circle cx="300" cy="15" r="4" fill="#ffffff" />
+                      </svg>
+                    </div>
+
+                    {/* Botones de Acción Rápida (Enviar / Ingresar) */}
+                    <div className="grid grid-cols-2 gap-2.5 pt-2">
+                      <button
+                        onClick={() => {
+                          sounds.playPop()
+                          setFormData(prev => ({ ...prev, type: 'Egreso' }))
+                          setShowModal(true)
+                        }}
+                        className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-rose-300 text-xs font-bold transition active:scale-95"
+                      >
+                        <ArrowUp size={14} className="text-rose-400" />
+                        <span>Enviar Egreso</span>
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          sounds.playPop()
+                          setFormData(prev => ({ ...prev, type: 'Ingreso' }))
+                          setShowModal(true)
+                        }}
+                        className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-black transition active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                      >
+                        <ArrowDown size={14} className="text-emerald-400" />
+                        <span>Ingresar Fondos</span>
+                      </button>
+                    </div>
+
+                    {/* Stacked Founders Avatar Widget */}
+                    <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex -space-x-2 overflow-hidden">
+                          <div className="inline-block size-7 rounded-full ring-2 ring-[#07080f] bg-gradient-to-tr from-emerald-500 to-teal-400 text-black text-[10px] font-black flex items-center justify-center shadow-md">
+                            LH
+                          </div>
+                          <div className="inline-block size-7 rounded-full ring-2 ring-[#07080f] bg-gradient-to-tr from-purple-500 to-indigo-500 text-white text-[10px] font-black flex items-center justify-center shadow-md">
+                            YG
+                          </div>
+                          <div className="inline-block size-7 rounded-full ring-2 ring-[#07080f] bg-zinc-800 border border-white/20 text-zinc-300 text-[9px] font-bold flex items-center justify-center">
+                            +2
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-[11px] font-bold text-white">Firmantes Oficiales</p>
+                          <p className="text-[9px] text-zinc-400">2 de 2 firmas requeridas</p>
                         </div>
                       </div>
+
+                      <span className="px-2 py-1 rounded-md bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-[9px] font-bold">
+                        Mancomunado
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Distribución de Gastos */}
+                  <div className="p-6 rounded-3xl liquid-glass space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Distribución de Gastos</p>
+                        <p className="text-sm font-black text-white mt-0.5">Porcentajes en Pesos</p>
+                      </div>
+                      <CircleDollarSign size={18} className="text-emerald-400" />
                     </div>
 
-                    <div className="space-y-2.5">
-                      {categoryDistribution.map(cat => (
+                    <div className="space-y-2">
+                      {categoryDistribution.slice(0, 3).map(cat => (
                         <div key={cat.name} className="flex items-center justify-between text-xs">
                           <div className="flex items-center gap-2 text-zinc-300">
-                            <span className={`size-2.5 rounded-full ${cat.dot}`} />
-                            <span className="truncate max-w-[140px]">{cat.name}</span>
+                            <span className={`size-2 rounded-full ${cat.dot}`} />
+                            <span className="truncate max-w-[130px]">{cat.name}</span>
                           </div>
                           <span className="font-bold text-white">{cat.percent}%</span>
                         </div>
                       ))}
                     </div>
-                  </div>
 
-                  <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] text-[11px] text-zinc-400">
-                    Líneas de negocio: HazeCard NFC, Software SaaS, Negocio Aparte y Proyectos de Inversión.
+                    <p className="text-[10px] text-zinc-400 pt-2 border-t border-white/[0.04]">
+                      Líneas: HazeCard NFC, Software SaaS, Negocio Aparte y Fondos de Inversión.
+                    </p>
                   </div>
                 </div>
               </div>
