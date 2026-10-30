@@ -1,40 +1,59 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Image from 'next/image'
 import {
   ArrowDownRight,
   ArrowUpRight,
   BarChart3,
   Bell,
   Building2,
+  Calendar,
   Check,
   CheckCircle2,
+  ChevronDown,
   CircleDollarSign,
   Clock,
+  Compass,
+  DollarSign,
   Download,
   Eye,
   EyeOff,
   FileCheck2,
+  Filter,
+  Flame,
   Info,
   KeyRound,
   LayoutDashboard,
+  LineChart,
+  ListTodo,
   Lock,
   LogOut,
   Menu,
+  Percent,
+  PieChart,
   Plus,
   ReceiptText,
+  RotateCcw,
   Search,
   Settings2,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  TrendingDown,
+  TrendingUp,
+  Trash2,
   User,
   UserCheck,
   Users,
+  Volume2,
+  VolumeX,
   Wallet,
   X,
+  Zap,
 } from 'lucide-react'
 
+// MODELOS DE DATOS
 export interface FinancialMovement {
   id: string
   type: 'Ingreso' | 'Egreso'
@@ -54,7 +73,31 @@ export interface FinancialMovement {
   }
 }
 
-// Credenciales fijas de los dos fundadores de HAZE
+export interface InvestmentStage {
+  id: string
+  projectName: string
+  stage: 'Fase Semilla' | 'Desarrollo & Prototipo' | 'Producción Lote' | 'Escalamiento & Ventas' | 'Maduración'
+  investedAmount: number
+  returnedAmount: number
+  investor: 'Ambos (Capital HAZE)' | 'Luis Alfonso Herrera' | 'Yoinner Gándara'
+  date: string
+  time: string
+  status: 'En Ejecución' | 'Recuperando' | 'Rentable' | 'Completado'
+  notes: string
+}
+
+export interface FinancialTask {
+  id: string
+  title: string
+  estimatedAmount?: number
+  priority: 'Alta' | 'Media' | 'Baja'
+  assignedTo: 'Luis' | 'Yoinner' | 'Ambos'
+  dueDate?: string
+  completed: boolean
+  createdAt: string
+}
+
+// Credenciales fijas de los dos fundadores (CLAVES OCULTAS EN LA UI)
 export const FOUNDERS = [
   {
     id: 'luis',
@@ -78,18 +121,20 @@ type FounderId = 'luis' | 'yoinner'
 
 const INCOME_CATEGORIES = [
   'HazeCard (Tarjetas Inteligentes NFC)',
-  'Desarrollo Web & Software',
+  'Desarrollo Web & Software SaaS',
   'Inteligencia Artificial & Automatización',
   'Negocio Aparte / Proyectos Especiales',
+  'Retorno de Inversión / Dividendos',
   'Consultoría & Servicios Tech',
-  'Inversión / Capital de Socios',
+  'Inversión / Aporte de Socios',
   'Otros Ingresos',
 ]
 
 const EXPENSE_CATEGORIES = [
-  'Producción HazeCard NFC',
+  'Inversión en Nuevas Etapas / Proyectos',
+  'Producción Lote HazeCard NFC',
   'Infraestructura Cloud & Servidores',
-  'Marketing & Pauta Publicitaria',
+  'Marketing, Pauta & Expansión',
   'Herramientas, Licencias & APIs',
   'Nómina & Honorarios',
   'Gastos Operativos & Oficina',
@@ -101,11 +146,125 @@ const SOURCES_DESTINATIONS = [
   'Bancolombia HAZE Empresarial',
   'Tarjeta Débito Corporativa',
   'Pasarela Stripe Haze',
-  'Cuenta de Ahorros Operativa',
+  'Cuenta Operativa de Ahorros',
   'Caja Menor Barranquilla',
-  'Efectivo / Transferencia Directa',
+  'Fondo de Inversión HAZE',
   'Crypto / USDT Wallet',
 ]
+
+// SINTETIZADOR DE AUDIO WEB AUDIO API (Sonidos futuristas fintech)
+class SoundManager {
+  private ctx: AudioContext | null = null
+  private enabled: boolean = true
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('haze_sound_enabled')
+      if (stored !== null) this.enabled = stored === 'true'
+    }
+  }
+
+  public isEnabled() {
+    return this.enabled
+  }
+
+  public toggle() {
+    this.enabled = !this.enabled
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('haze_sound_enabled', String(this.enabled))
+    }
+    if (this.enabled) this.playPop()
+    return this.enabled
+  }
+
+  private getContext() {
+    if (!this.ctx && typeof window !== 'undefined') {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext
+      if (AudioCtx) this.ctx = new AudioCtx()
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume()
+    }
+    return this.ctx
+  }
+
+  public playPop() {
+    if (!this.enabled) return
+    const ctx = this.getContext()
+    if (!ctx) return
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.setValueAtTime(850, ctx.currentTime)
+    osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.05)
+    gain.gain.setValueAtTime(0.12, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(ctx.currentTime + 0.05)
+  }
+
+  public playSuccess() {
+    if (!this.enabled) return
+    const ctx = this.getContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+    const notes = [587.33, 880] // D5 -> A5 chord
+    notes.forEach((freq, idx) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'triangle'
+      osc.frequency.setValueAtTime(freq, now + idx * 0.08)
+      gain.gain.setValueAtTime(0.15, now + idx * 0.08)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.35)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now + idx * 0.08)
+      osc.stop(now + idx * 0.08 + 0.35)
+    })
+  }
+
+  public playCash() {
+    if (!this.enabled) return
+    const ctx = this.getContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+    const chords = [523.25, 659.25, 783.99, 1046.5] // C E G C
+    chords.forEach((freq, idx) => {
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(freq, now + idx * 0.05)
+      gain.gain.setValueAtTime(0.1, now + idx * 0.05)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.25)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start(now + idx * 0.05)
+      osc.stop(now + idx * 0.05 + 0.25)
+    })
+  }
+
+  public playReject() {
+    if (!this.enabled) return
+    const ctx = this.getContext()
+    if (!ctx) return
+    const now = ctx.currentTime
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sawtooth'
+    osc.frequency.setValueAtTime(320, now)
+    osc.frequency.linearRampToValueAtTime(180, now + 0.15)
+    gain.gain.setValueAtTime(0.08, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start()
+    osc.stop(now + 0.15)
+  }
+}
+
+const sounds = new SoundManager()
 
 export default function Page() {
   // Autenticación de fundador
@@ -114,23 +273,35 @@ export default function Page() {
   const [selectedFounderForLogin, setSelectedFounderForLogin] = useState<FounderId>('luis')
   const [loginError, setLoginError] = useState(false)
   const [isClient, setIsClient] = useState(false)
+  const [soundEnabled, setSoundEnabled] = useState(true)
 
   // Navegación
-  const [activeTab, setActiveTab] = useState<'resumen' | 'movimientos' | 'aprobaciones' | 'reportes' | 'configuracion'>('resumen')
+  const [activeTab, setActiveTab] = useState<'resumen' | 'movimientos' | 'aprobaciones' | 'inversiones' | 'pendientes' | 'reportes' | 'configuracion'>('resumen')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showModal, setShowModal] = useState(false)
+  const [showInvestmentModal, setShowInvestmentModal] = useState(false)
+  const [showReturnModal, setShowReturnModal] = useState(false)
+  const [showTaskModal, setShowTaskModal] = useState(false)
+  const [selectedInvestmentForReturn, setSelectedInvestmentForReturn] = useState<InvestmentStage | null>(null)
   const [showBalance, setShowBalance] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
 
-  // Lista de movimientos financieros
+  // Lista de Movimientos Financieros
   const [movements, setMovements] = useState<FinancialMovement[]>([])
+
+  // Lista de Inversiones por Etapa (ROI)
+  const [investments, setInvestments] = useState<InvestmentStage[]>([])
+
+  // Lista de Tareas / Pendientes
+  const [tasks, setTasks] = useState<FinancialTask[]>([])
 
   // Filtros
   const [typeFilter, setTypeFilter] = useState<'Todos' | 'Ingreso' | 'Egreso'>('Todos')
   const [categoryFilter, setCategoryFilter] = useState<string>('Todas')
   const [searchQuery, setSearchQuery] = useState<string>('')
+  const [taskFilter, setTaskFilter] = useState<'Todos' | 'Pendientes' | 'Completados'>('Todos')
 
-  // Formulario nuevo movimiento (Sin pedir fecha ni hora: se toman automáticamente)
+  // Formulario nuevo movimiento
   const [formData, setFormData] = useState({
     type: 'Ingreso' as 'Ingreso' | 'Egreso',
     concept: '',
@@ -140,22 +311,61 @@ export default function Page() {
     justification: '',
   })
 
-  // Reloj en tiempo real para mostrar en el modal
+  // Formulario nueva inversión
+  const [investForm, setInvestForm] = useState({
+    projectName: '',
+    stage: 'Fase Semilla' as InvestmentStage['stage'],
+    investedAmount: '',
+    investor: 'Ambos (Capital HAZE)' as InvestmentStage['investor'],
+    notes: '',
+  })
+
+  // Formulario retorno de inversión
+  const [returnForm, setReturnForm] = useState({
+    returnAmount: '',
+    notes: '',
+  })
+
+  // Formulario nueva tarea financiera
+  const [taskForm, setTaskForm] = useState({
+    title: '',
+    estimatedAmount: '',
+    priority: 'Alta' as 'Alta' | 'Media' | 'Baja',
+    assignedTo: 'Ambos' as 'Luis' | 'Yoinner' | 'Ambos',
+    dueDate: '',
+  })
+
+  // Reloj en tiempo real
   const [currentTimeDisplay, setCurrentTimeDisplay] = useState('')
 
   useEffect(() => {
     setIsClient(true)
+    setSoundEnabled(sounds.isEnabled())
+
     const savedUser = localStorage.getItem('haze_founder_auth') as FounderId | null
     if (savedUser && (savedUser === 'luis' || savedUser === 'yoinner')) {
       setCurrentUser(savedUser)
     }
+
     const savedMovements = localStorage.getItem('haze_movements_data')
     if (savedMovements) {
       try {
         setMovements(JSON.parse(savedMovements))
-      } catch {
-        // En caso de datos corruptos
-      }
+      } catch {}
+    }
+
+    const savedInvestments = localStorage.getItem('haze_investments_data')
+    if (savedInvestments) {
+      try {
+        setInvestments(JSON.parse(savedInvestments))
+      } catch {}
+    }
+
+    const savedTasks = localStorage.getItem('haze_tasks_data')
+    if (savedTasks) {
+      try {
+        setTasks(JSON.parse(savedTasks))
+      } catch {}
     }
 
     const timer = setInterval(() => {
@@ -170,14 +380,25 @@ export default function Page() {
     return () => clearInterval(timer)
   }, [])
 
-  // Persistir movimientos en localStorage
+  // Persistencia
   useEffect(() => {
     if (isClient) {
       localStorage.setItem('haze_movements_data', JSON.stringify(movements))
     }
   }, [movements, isClient])
 
-  // Cambiar categoría por defecto al cambiar el tipo
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem('haze_investments_data', JSON.stringify(investments))
+    }
+  }, [investments, isClient])
+
+  useEffect(() => {
+    if (isClient) {
+      localStorage.setItem('haze_tasks_data', JSON.stringify(tasks))
+    }
+  }, [tasks, isClient])
+
   useEffect(() => {
     if (formData.type === 'Ingreso') {
       setFormData(prev => ({ ...prev, category: INCOME_CATEGORIES[0] }))
@@ -186,17 +407,20 @@ export default function Page() {
     }
   }, [formData.type])
 
-  function notify(msg: string) {
+  function notify(msg: string, type: 'pop' | 'success' | 'reject' | 'cash' = 'pop') {
     setToast(msg)
-    window.setTimeout(() => setToast(null), 3200)
+    if (type === 'success') sounds.playSuccess()
+    else if (type === 'cash') sounds.playCash()
+    else if (type === 'reject') sounds.playReject()
+    else sounds.playPop()
+    window.setTimeout(() => setToast(null), 3500)
   }
 
-  // Formateador de moneda en Pesos Colombianos (COP)
   function formatCOP(val: number) {
     return `$ ${val.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`
   }
 
-  // Login con PIN
+  // Login con PIN seguro (Sin mostrar clave en pantalla)
   function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     const targetFounder = FOUNDERS.find(f => f.id === selectedFounderForLogin)
@@ -207,23 +431,22 @@ export default function Page() {
       localStorage.setItem('haze_founder_auth', targetFounder.id)
       setPinInput('')
       setLoginError(false)
-      notify(`Bienvenido, ${targetFounder.shortName} · Acceso de fundador verificado`)
+      notify(`Bienvenido, ${targetFounder.shortName} · Acceso de fundador verificado`, 'success')
     } else {
       setLoginError(true)
-      notify('PIN incorrecto. Acceso mancomunado restringido.')
+      notify('PIN incorrecto. Acceso mancomunado restringido.', 'reject')
     }
   }
 
   function handleLogout() {
+    sounds.playPop()
     setCurrentUser(null)
     localStorage.removeItem('haze_founder_auth')
     setPinInput('')
-    notify('Sesión cerrada. Sistema asegurado con PIN.')
+    notify('Sesión asegurada con PIN.', 'reject')
   }
 
-  // REGLA CRUCIAL:
-  // "necesita aprobación de ambos para poder verse y que se ponga"
-  // Solo los movimientos aprobados por Luis Y por Yoinner entran al balance y al resumen general.
+  // Regla: Solo movimientos aprobados por ambos impactan el balance
   const approvedMovements = useMemo(() => {
     return movements.filter(m => m.status === 'Aprobado' && m.approvals.luis === 'Aprobado' && m.approvals.yoinner === 'Aprobado')
   }, [movements])
@@ -248,7 +471,23 @@ export default function Page() {
     return totalIncome - totalExpense
   }, [totalIncome, totalExpense])
 
-  // Filtrado de movimientos (para pestaña de ingresos y egresos)
+  // Estadísticas globales de Inversión & ROI
+  const investmentStats = useMemo(() => {
+    const totalInvested = investments.reduce((acc, i) => acc + i.investedAmount, 0)
+    const totalReturned = investments.reduce((acc, i) => acc + i.returnedAmount, 0)
+    const netProfit = totalReturned - totalInvested
+    const overallROI = totalInvested > 0 ? ((totalReturned - totalInvested) / totalInvested) * 100 : 0
+    const multiple = totalInvested > 0 ? (totalReturned / totalInvested) : 0
+    return {
+      totalInvested,
+      totalReturned,
+      netProfit,
+      overallROI,
+      multiple,
+    }
+  }, [investments])
+
+  // Filtrado de movimientos
   const filteredMovements = useMemo(() => {
     return movements.filter(m => {
       const matchType = typeFilter === 'Todos' || m.type === typeFilter
@@ -262,7 +501,16 @@ export default function Page() {
     })
   }, [movements, typeFilter, categoryFilter, searchQuery])
 
-  // Distribución porcentual en Pesos
+  // Tareas filtradas
+  const filteredTasks = useMemo(() => {
+    return tasks.filter(t => {
+      if (taskFilter === 'Pendientes') return !t.completed
+      if (taskFilter === 'Completados') return t.completed
+      return true
+    })
+  }, [tasks, taskFilter])
+
+  // Distribución de Gastos
   const categoryDistribution = useMemo(() => {
     const expensesByCategory: Record<string, number> = {}
     approvedMovements.filter(m => m.type === 'Egreso').forEach(m => {
@@ -270,47 +518,46 @@ export default function Page() {
     })
 
     return [
-      { name: 'Hardware HazeCard NFC', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Producción HazeCard NFC'] || 0) / totalExpense) * 100) : 0, dot: 'bg-fuchsia-500' },
-      { name: 'Cloud & Servidores', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Infraestructura Cloud & Servidores'] || 0) / totalExpense) * 100) : 0, dot: 'bg-violet-500' },
-      { name: 'Marketing & Pauta', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Marketing & Pauta Publicitaria'] || 0) / totalExpense) * 100) : 0, dot: 'bg-purple-400' },
-      { name: 'Nómina & Honorarios', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Nómina & Honorarios'] || 0) / totalExpense) * 100) : 0, dot: 'bg-pink-500' },
-      { name: 'Otros Rubros', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Otros Gastos'] || 0) / totalExpense) * 100) : 0, dot: 'bg-zinc-500' },
+      { name: 'Hardware HazeCard NFC', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Producción Lote HazeCard NFC'] || 0) / totalExpense) * 100) : 0, dot: 'bg-emerald-400' },
+      { name: 'Inversión en Proyectos', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Inversión en Nuevas Etapas / Proyectos'] || 0) / totalExpense) * 100) : 0, dot: 'bg-violet-400' },
+      { name: 'Cloud & Servidores', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Infraestructura Cloud & Servidores'] || 0) / totalExpense) * 100) : 0, dot: 'bg-fuchsia-400' },
+      { name: 'Marketing & Expansión', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Marketing, Pauta & Expansión'] || 0) / totalExpense) * 100) : 0, dot: 'bg-pink-400' },
+      { name: 'Nómina & Honorarios', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Nómina & Honorarios'] || 0) / totalExpense) * 100) : 0, dot: 'bg-amber-400' },
+      { name: 'Otros Gastos', percent: totalExpense > 0 ? Math.round(((expensesByCategory['Otros Gastos'] || 0) / totalExpense) * 100) : 0, dot: 'bg-zinc-500' },
     ]
   }, [approvedMovements, totalExpense])
 
-  // Registro de nuevo movimiento (Fecha y Hora AUTOMÁTICAS)
+  // CREAR MOVIMIENTO (Fecha y hora automáticas al instante)
   function handleCreateMovement(e: React.FormEvent) {
     e.preventDefault()
 
     if (!currentUser) {
-      notify('Debes estar autenticado para registrar movimientos.')
+      notify('Debes estar autenticado para registrar movimientos.', 'reject')
       return
     }
 
     if (!formData.concept.trim()) {
-      notify('Indica la descripción o concepto del movimiento.')
+      notify('Indica la descripción o concepto.', 'reject')
       return
     }
 
     const numAmount = parseFloat(formData.amount)
     if (isNaN(numAmount) || numAmount <= 0) {
-      notify('El monto en pesos debe ser mayor a cero.')
+      notify('El monto en pesos debe ser mayor a cero.', 'reject')
       return
     }
 
     if (!formData.justification.trim()) {
-      notify('Por favor agrega la justificación de la operación.')
+      notify('Por favor agrega la justificación de la operación.', 'reject')
       return
     }
 
     const currentFounderObj = FOUNDERS.find(f => f.id === currentUser)!
     const now = new Date()
 
-    // Fecha y hora registradas AUTOMÁTICAMENTE al segundo exacto
     const autoDate = now.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' })
     const autoTime = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
 
-    // Quien lo crea lo pre-aprueba con su firma; el otro socio debe aprobar para que se ponga en el balance
     const isLuis = currentUser === 'luis'
     const newMovement: FinancialMovement = {
       id: 'HAZE-' + Math.floor(100000 + Math.random() * 900000),
@@ -342,15 +589,15 @@ export default function Page() {
       justification: '',
     })
 
-    const otherFounder = isLuis ? 'Yoinner Gándara (1205)' : 'Luis Alfonso Herrera (1206)'
-    notify(`Movimiento registrado a las ${autoTime}. Pendiente de la firma de ${otherFounder} para impactar el balance.`)
+    const otherFounder = isLuis ? 'Yoinner Gándara' : 'Luis Alfonso Herrera'
+    notify(`Registrado con éxito a las ${autoTime}. Pendiente de la firma de ${otherFounder}.`, 'pop')
   }
 
-  // Firmar Aprobación
+  // FIRMAR APROBACIÓN
   function handleApprove(id: string, founderId: FounderId) {
     if (currentUser !== founderId) {
-      const reqName = founderId === 'luis' ? 'Luis Alfonso Herrera (PIN 1206)' : 'Yoinner Gándara (PIN 1205)'
-      notify(`Para firmar esta aprobación debes cambiar de usuario e ingresar como ${reqName}.`)
+      const reqName = founderId === 'luis' ? 'Luis Alfonso Herrera' : 'Yoinner Gándara'
+      notify(`Para firmar debes cambiar de usuario e ingresar como ${reqName}.`, 'reject')
       return
     }
 
@@ -361,7 +608,6 @@ export default function Page() {
           ...m.approvals,
           [founderId]: 'Aprobado' as const,
         }
-        // Requiere aprobación de AMBOS para poder verse e impactar el balance
         const bothApproved = newApprovals.luis === 'Aprobado' && newApprovals.yoinner === 'Aprobado'
         return {
           ...m,
@@ -372,14 +618,13 @@ export default function Page() {
     )
 
     const founderName = founderId === 'luis' ? 'Luis Alfonso' : 'Yoinner'
-    notify(`Firma de ${founderName} registrada exitosamente.`)
+    notify(`Firma de ${founderName} validada. ¡Operación conciliada!`, 'success')
   }
 
-  // Rechazar
+  // RECHAZAR
   function handleReject(id: string, founderId: FounderId) {
     if (currentUser !== founderId) {
-      const reqName = founderId === 'luis' ? 'Luis Alfonso Herrera' : 'Yoinner Gándara'
-      notify(`Debes haber iniciado sesión como ${reqName} para rechazar esta operación.`)
+      notify(`Solo el firmante autorizado puede rechazar.`, 'reject')
       return
     }
 
@@ -396,50 +641,225 @@ export default function Page() {
         }
       })
     )
-    notify(`Movimiento rechazado. No se sumará al balance.`)
+    notify(`Operación rechazada. No se sumará al balance.`, 'reject')
   }
 
-  // Exportar reporte
-  function exportCSV() {
-    if (approvedMovements.length === 0) {
-      notify('No hay movimientos aprobados por ambos fundadores para exportar.')
+  // CREAR INVERSIÓN POR ETAPA
+  function handleCreateInvestment(e: React.FormEvent) {
+    e.preventDefault()
+    const numAmount = parseFloat(investForm.investedAmount)
+    if (!investForm.projectName.trim() || isNaN(numAmount) || numAmount <= 0) {
+      notify('Por favor completa los datos de la inversión.', 'reject')
       return
     }
-    const headers = ['ID,Tipo,Concepto,Monto_COP,Categoria,Origen_Destino,Justificacion,Fecha,Hora,Registrado_Por,Estado\n']
+
+    const now = new Date()
+    const autoDate = now.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    const autoTime = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })
+
+    const newInvest: InvestmentStage = {
+      id: 'INV-' + Math.floor(1000 + Math.random() * 9000),
+      projectName: investForm.projectName.trim(),
+      stage: investForm.stage,
+      investedAmount: numAmount,
+      returnedAmount: 0,
+      investor: investForm.investor,
+      date: autoDate,
+      time: autoTime,
+      status: 'En Ejecución',
+      notes: investForm.notes.trim() || 'Inversión de capital para impulso comercial.',
+    }
+
+    // Registrar automáticamente también como Egreso para la contabilidad (pendiente de doble firma)
+    const newMovement: FinancialMovement = {
+      id: 'HAZE-' + Math.floor(100000 + Math.random() * 900000),
+      type: 'Egreso',
+      concept: `Inversión: ${newInvest.projectName} (${newInvest.stage})`,
+      amount: numAmount,
+      category: 'Inversión en Nuevas Etapas / Proyectos',
+      sourceDestination: 'Fondo de Inversión HAZE',
+      justification: `Capital inyectado en etapa: ${newInvest.stage}. Destinado a retornos de ganancia futuros.`,
+      date: autoDate,
+      time: autoTime,
+      timestamp: now.getTime(),
+      registeredBy: currentUser === 'luis' ? 'Luis Alfonso Herrera' : 'Yoinner Gándara',
+      status: 'Pendiente',
+      approvals: {
+        luis: currentUser === 'luis' ? 'Aprobado' : 'Pendiente',
+        yoinner: currentUser === 'yoinner' ? 'Aprobado' : 'Pendiente',
+      },
+    }
+
+    setInvestments(prev => [newInvest, ...prev])
+    setMovements(prev => [newMovement, ...prev])
+    setShowInvestmentModal(false)
+    setInvestForm({
+      projectName: '',
+      stage: 'Fase Semilla',
+      investedAmount: '',
+      investor: 'Ambos (Capital HAZE)',
+      notes: '',
+    })
+    notify('Inversión creada y registrada en egresos para doble aprobación.', 'success')
+  }
+
+  // REGISTRAR RETORNO DE INVERSIÓN / GANANCIA
+  function handleRegisterReturn(e: React.FormEvent) {
+    e.preventDefault()
+    if (!selectedInvestmentForReturn) return
+    const returnAmount = parseFloat(returnForm.returnAmount)
+    if (isNaN(returnAmount) || returnAmount <= 0) {
+      notify('Indica un monto de retorno válido.', 'reject')
+      return
+    }
+
+    const now = new Date()
+    const autoDate = now.toLocaleDateString('es-CO', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    const autoTime = now.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', hour12: true })
+
+    setInvestments(prev =>
+      prev.map(inv => {
+        if (inv.id !== selectedInvestmentForReturn.id) return inv
+        const newReturned = inv.returnedAmount + returnAmount
+        let newStatus: InvestmentStage['status'] = 'Recuperando'
+        if (newReturned >= inv.investedAmount) {
+          newStatus = newReturned > inv.investedAmount ? 'Rentable' : 'Completado'
+        }
+        return {
+          ...inv,
+          returnedAmount: newReturned,
+          status: newStatus,
+        }
+      })
+    )
+
+    // Crear Ingreso correspondiente para el balance
+    const newMovement: FinancialMovement = {
+      id: 'HAZE-' + Math.floor(100000 + Math.random() * 900000),
+      type: 'Ingreso',
+      concept: `Retorno Ganancia: ${selectedInvestmentForReturn.projectName}`,
+      amount: returnAmount,
+      category: 'Retorno de Inversión / Dividendos',
+      sourceDestination: 'Bancolombia HAZE Empresarial',
+      justification: `Retorno de capital o ganancia sobre la inversión ${selectedInvestmentForReturn.id}. ${returnForm.notes}`,
+      date: autoDate,
+      time: autoTime,
+      timestamp: now.getTime(),
+      registeredBy: currentUser === 'luis' ? 'Luis Alfonso Herrera' : 'Yoinner Gándara',
+      status: 'Pendiente',
+      approvals: {
+        luis: currentUser === 'luis' ? 'Aprobado' : 'Pendiente',
+        yoinner: currentUser === 'yoinner' ? 'Aprobado' : 'Pendiente',
+      },
+    }
+
+    setMovements(prev => [newMovement, ...prev])
+    setShowReturnModal(false)
+    setReturnForm({ returnAmount: '', notes: '' })
+    setSelectedInvestmentForReturn(null)
+    notify(`Retorno de ${formatCOP(returnAmount)} registrado. Enviado a doble firma.`, 'cash')
+  }
+
+  // TAREAS / PENDIENTES
+  function handleCreateTask(e: React.FormEvent) {
+    e.preventDefault()
+    if (!taskForm.title.trim()) {
+      notify('Por favor escribe el título del pendiente.', 'reject')
+      return
+    }
+
+    const newTask: FinancialTask = {
+      id: 'TSK-' + Math.floor(1000 + Math.random() * 9000),
+      title: taskForm.title.trim(),
+      estimatedAmount: taskForm.estimatedAmount ? parseFloat(taskForm.estimatedAmount) : undefined,
+      priority: taskForm.priority,
+      assignedTo: taskForm.assignedTo,
+      dueDate: taskForm.dueDate || undefined,
+      completed: false,
+      createdAt: new Date().toLocaleDateString('es-CO'),
+    }
+
+    setTasks(prev => [newTask, ...prev])
+    setShowTaskModal(false)
+    setTaskForm({
+      title: '',
+      estimatedAmount: '',
+      priority: 'Alta',
+      assignedTo: 'Ambos',
+      dueDate: '',
+    })
+    notify('Pendiente agregado a la lista de compromisos.', 'pop')
+  }
+
+  function toggleTask(id: string) {
+    setTasks(prev =>
+      prev.map(t => {
+        if (t.id !== id) return t
+        const nextState = !t.completed
+        if (nextState) sounds.playSuccess()
+        else sounds.playPop()
+        return { ...t, completed: nextState }
+      })
+    )
+  }
+
+  function deleteTask(id: string) {
+    sounds.playReject()
+    setTasks(prev => prev.filter(t => t.id !== id))
+    notify('Pendiente eliminado.', 'reject')
+  }
+
+  function exportCSV() {
+    if (approvedMovements.length === 0) {
+      notify('No hay movimientos aprobados para exportar.', 'reject')
+      return
+    }
+    const headers = ['ID,Tipo,Concepto,Monto_COP,Categoria,Origen_Destino,Justificacion,Fecha,Hora,Registrado_Por\n']
     const rows = approvedMovements.map(
       m =>
-        `"${m.id}","${m.type}","${m.concept}","${m.amount}","${m.category}","${m.sourceDestination}","${m.justification}","${m.date}","${m.time}","${m.registeredBy}","${m.status}"`
+        `"${m.id}","${m.type}","${m.concept}","${m.amount}","${m.category}","${m.sourceDestination}","${m.justification}","${m.date}","${m.time}","${m.registeredBy}"`
     )
     const blob = new Blob([headers.concat(rows.join('\n')).join('')], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', `haze-balance-cop-${new Date().toISOString().slice(0, 10)}.csv`)
+    link.setAttribute('download', `haze-balance-pro-${new Date().toISOString().slice(0, 10)}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    notify('Reporte financiero en Pesos (COP) exportado.')
+    notify('Reporte exportado en Pesos (COP).', 'cash')
   }
 
-  // PANTALLA DE ACCESO CON PIN (Si no hay usuario activo)
+  // PANTALLA DE ACCESO CON PIN SEGURO (CLAVES 100% OCULTAS)
   if (!currentUser) {
     return (
-      <div className="relative min-h-screen bg-[#050508] text-[#f4f4f7] flex items-center justify-center p-4 selection:bg-purple-600/30">
-        {/* Glow de fondo Hazetech */}
+      <div className="relative min-h-screen bg-[#040508] text-[#f4f4f8] flex items-center justify-center p-4 selection:bg-purple-600/30">
+        {/* Luces y Efecto Liquid Glass Ambiental */}
         <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-gradient-to-b from-purple-900/20 via-fuchsia-950/15 to-transparent blur-[140px]" />
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-b from-purple-900/20 via-emerald-950/15 to-transparent blur-[160px]" />
+          <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-fuchsia-950/20 blur-[140px]" />
         </div>
 
-        <div className="relative z-10 w-full max-w-md p-8 rounded-3xl border border-white/[0.08] bg-[#0c0d16]/95 backdrop-blur-2xl shadow-[0_0_50px_rgba(147,51,234,0.15)] space-y-6 text-center">
+        <div className="relative z-10 w-full max-w-md p-8 rounded-3xl liquid-glass liquid-shimmer space-y-6 text-center">
+          {/* Logo Oficial Recortado en Círculo */}
           <div className="flex flex-col items-center gap-3">
-            <div className="size-14 rounded-2xl bg-gradient-to-tr from-violet-600 to-fuchsia-600 flex items-center justify-center text-white shadow-[0_0_25px_rgba(147,51,234,0.4)]">
-              <Sparkles size={28} className="animate-pulse" />
+            <div className="relative size-24 rounded-full p-1 bg-gradient-to-tr from-emerald-500 via-violet-500 to-amber-500 shadow-[0_0_35px_rgba(16,185,129,0.35)] animate-pulse-glow">
+              <div className="relative size-full rounded-full overflow-hidden bg-black">
+                <Image
+                  src="/haze-logo-circle.png"
+                  alt="HAZE Logo"
+                  width={96}
+                  height={96}
+                  priority
+                  className="size-full object-cover"
+                />
+              </div>
             </div>
             <div>
               <div className="flex items-center justify-center gap-1.5">
-                <span className="text-xl font-black tracking-tight text-white">HAZE</span>
-                <span className="size-2 rounded-full bg-fuchsia-500 shadow-[0_0_8px_#d946ef]" />
-                <span className="text-xs font-bold text-zinc-400">FINANCE</span>
+                <span className="text-2xl font-black tracking-tight text-white">HAZE</span>
+                <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_10px_#10b981]" />
+                <span className="text-xs font-bold text-zinc-400 uppercase tracking-widest">FINANCE</span>
               </div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-zinc-400 mt-1">
                 Founder OS · Acceso Seguro Mancomunado
@@ -448,14 +868,13 @@ export default function Page() {
           </div>
 
           <p className="text-xs text-zinc-400">
-            Selecciona tu usuario de fundador e ingresa tu PIN de seguridad para acceder y firmar operaciones financieras en Pesos (COP).
+            Ingresa como fundador para gestionar el balance, auditar inversiones con ROI y firmar operaciones en Pesos (COP).
           </p>
 
           <form onSubmit={handleLogin} className="space-y-5 text-left">
-            {/* Selección de Fundador */}
             <div>
               <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block mb-2">
-                Identidad de Fundador
+                Seleccionar Fundador
               </label>
               <div className="grid grid-cols-2 gap-2.5">
                 {FOUNDERS.map(founder => (
@@ -463,32 +882,31 @@ export default function Page() {
                     key={founder.id}
                     type="button"
                     onClick={() => {
+                      sounds.playPop()
                       setSelectedFounderForLogin(founder.id)
                       setPinInput('')
                       setLoginError(false)
                     }}
-                    className={`p-3 rounded-2xl border text-left transition ${
+                    className={`p-3.5 rounded-2xl border text-left transition ${
                       selectedFounderForLogin === founder.id
-                        ? 'border-purple-500 bg-purple-950/30 text-white shadow-[0_0_15px_rgba(147,51,234,0.2)]'
-                        : 'border-white/[0.06] bg-black/40 text-zinc-400 hover:text-white hover:bg-white/[0.03]'
+                        ? 'border-purple-500/80 bg-purple-950/40 text-white shadow-[0_0_20px_rgba(147,51,234,0.3)]'
+                        : 'border-white/[0.06] bg-black/40 text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                     }`}
                   >
                     <p className="text-xs font-black">{founder.shortName}</p>
-                    <p className="text-[10px] text-zinc-400 truncate">{founder.badge}</p>
+                    <p className="text-[10px] text-zinc-400">{founder.badge}</p>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Input de PIN */}
+            {/* PIN INPUT OCULTO (Sin mostrar la clave en el texto) */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                  PIN de Acceso (4 dígitos)
+                  PIN Secreto de Fundador
                 </label>
-                <span className="text-[10px] text-purple-400 font-semibold">
-                  {selectedFounderForLogin === 'luis' ? 'Clave: 1206 (Luis)' : 'Clave: 1205 (Yoinner)'}
-                </span>
+                <span className="text-[10px] text-zinc-400">4 dígitos confidenciales</span>
               </div>
               <div className="relative">
                 <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
@@ -503,28 +921,28 @@ export default function Page() {
                     setLoginError(false)
                   }}
                   placeholder="••••"
-                  className={`w-full pl-10 pr-4 py-3 rounded-xl border bg-black/60 text-center tracking-[0.5em] text-lg font-black text-white focus:outline-none transition ${
-                    loginError ? 'border-rose-500 text-rose-400 animate-shake' : 'border-white/[0.1] focus:border-purple-500'
+                  className={`w-full pl-10 pr-4 py-3.5 rounded-xl border bg-black/60 text-center tracking-[0.6em] text-xl font-black text-white focus:outline-none transition ${
+                    loginError ? 'border-rose-500 text-rose-400 animate-shake' : 'border-white/[0.12] focus:border-purple-500'
                   }`}
                 />
               </div>
               {loginError && (
-                <p className="text-[11px] text-rose-400 font-bold mt-1.5 flex items-center gap-1">
-                  <ShieldAlert size={12} /> PIN incorrecto para {selectedFounderForLogin === 'luis' ? 'Luis' : 'Yoinner'}.
+                <p className="text-[11px] text-rose-400 font-bold mt-2 flex items-center gap-1.5">
+                  <ShieldAlert size={14} /> PIN incorrecto. Clave protegida.
                 </p>
               )}
             </div>
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-500 hover:opacity-95 text-white text-xs font-black shadow-[0_0_20px_rgba(147,51,234,0.4)] transition active:scale-[0.98]"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-emerald-500 hover:opacity-95 text-white text-xs font-black shadow-[0_0_25px_rgba(147,51,234,0.4)] transition active:scale-[0.98]"
             >
               Desbloquear Dashboard Financiero
             </button>
           </form>
 
-          <div className="pt-2 border-t border-white/[0.06] text-[10px] text-zinc-400">
-            Protocolo de doble aprobación activo · hazetech.co
+          <div className="pt-2 border-t border-white/[0.06] text-[10px] text-zinc-400 flex items-center justify-center gap-2">
+            <Lock size={12} className="text-emerald-400" /> Control Mancomunado · hazetech.co
           </div>
         </div>
       </div>
@@ -534,110 +952,118 @@ export default function Page() {
   const activeFounderObj = FOUNDERS.find(f => f.id === currentUser)!
 
   return (
-    <div className="relative flex min-h-screen bg-[#050508] text-[#f4f4f7] selection:bg-purple-600/30 selection:text-purple-200">
-      {/* Fondo estético Hazetech */}
+    <div className="relative flex min-h-screen bg-[#040508] text-[#f4f4f8] selection:bg-purple-600/30 selection:text-purple-200">
+      {/* Luces y Efecto Liquid Glass Ambiental */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden z-0">
-        <div className="absolute -top-[25%] left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-gradient-to-b from-purple-900/15 via-fuchsia-950/10 to-transparent blur-[140px]" />
-        <div className="absolute top-[60%] -left-[20%] w-[600px] h-[600px] bg-purple-950/10 blur-[160px]" />
-        <div className="absolute top-[40%] -right-[20%] w-[600px] h-[600px] bg-fuchsia-950/10 blur-[160px]" />
+        <div className="absolute -top-[25%] left-1/2 -translate-x-1/2 w-[1100px] h-[600px] bg-gradient-to-b from-purple-900/15 via-emerald-950/10 to-transparent blur-[160px]" />
+        <div className="absolute top-[60%] -left-[20%] w-[650px] h-[650px] bg-purple-950/15 blur-[180px]" />
+        <div className="absolute top-[40%] -right-[20%] w-[650px] h-[650px] bg-emerald-950/10 blur-[180px]" />
         <div className="absolute inset-0 bg-[radial-gradient(#ffffff05_1px,transparent_1px)] [background-size:24px_24px] opacity-40" />
       </div>
 
       {/* Sidebar fijo en escritorio */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[260px] flex-col border-r border-white/[0.08] bg-[#07080f]/85 backdrop-blur-xl lg:flex">
-        {/* Logo HAZE */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-white/[0.06]">
-          <div className="relative flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-[0_0_20px_rgba(147,51,234,0.4)]">
-            <Sparkles size={20} className="animate-pulse" />
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[265px] flex-col border-r border-white/[0.08] bg-[#07080f]/80 backdrop-blur-2xl lg:flex">
+        {/* Logo Circular Oficial HAZE */}
+        <div className="flex items-center gap-3.5 px-6 py-5 border-b border-white/[0.06]">
+          <div className="relative size-11 rounded-full p-0.5 bg-gradient-to-tr from-emerald-500 via-violet-500 to-amber-500 shadow-[0_0_20px_rgba(16,185,129,0.35)] shrink-0">
+            <div className="size-full rounded-full overflow-hidden bg-black">
+              <Image
+                src="/haze-logo-circle.png"
+                alt="HAZE Logo"
+                width={44}
+                height={44}
+                priority
+                className="size-full object-cover"
+              />
+            </div>
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-base font-black tracking-tight text-white">HAZE</span>
-              <span className="size-1.5 rounded-full bg-fuchsia-500 shadow-[0_0_8px_#d946ef]" />
-              <span className="text-xs font-bold text-zinc-400">FINANCE</span>
+              <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
+              <span className="text-[11px] font-bold text-zinc-400">FINANCE</span>
             </div>
-            <p className="text-[10px] font-semibold tracking-wider uppercase text-zinc-400">Founder OS · COP ($)</p>
+            <p className="text-[10px] font-bold tracking-wider uppercase text-purple-400 truncate">Founder OS · COP</p>
           </div>
         </div>
 
-        {/* Menú de Navegación */}
+        {/* Menú de Navegación con Efecto Glass */}
         <div className="flex-1 px-4 py-5 space-y-6 overflow-y-auto">
           <div>
-            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Control Financiero</p>
+            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Módulos Financieros</p>
             <nav className="space-y-1">
-              <button
-                onClick={() => setActiveTab('resumen')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  activeTab === 'resumen'
-                    ? 'bg-gradient-to-r from-violet-600/20 to-fuchsia-600/10 text-white border border-purple-500/30 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <LayoutDashboard size={17} className={activeTab === 'resumen' ? 'text-violet-400' : 'text-zinc-400'} />
-                  <span>Resumen</span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('movimientos')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  activeTab === 'movimientos'
-                    ? 'bg-gradient-to-r from-violet-600/20 to-fuchsia-600/10 text-white border border-purple-500/30 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <ReceiptText size={17} className={activeTab === 'movimientos' ? 'text-violet-400' : 'text-zinc-400'} />
-                  <span>Ingresos y Egresos</span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('aprobaciones')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                  activeTab === 'aprobaciones'
-                    ? 'bg-gradient-to-r from-violet-600/20 to-fuchsia-600/10 text-white border border-purple-500/30 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <FileCheck2 size={17} className={activeTab === 'aprobaciones' ? 'text-violet-400' : 'text-zinc-400'} />
-                  <span>Pendientes de Aprobación</span>
-                </div>
-                {pendingMovements.length > 0 && (
-                  <span className="flex items-center justify-center size-5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-[10px] font-bold text-black shadow-[0_0_10px_rgba(245,158,11,0.5)]">
-                    {pendingMovements.length}
-                  </span>
-                )}
-              </button>
+              {[
+                { id: 'resumen', label: 'Resumen Ejecutivo', icon: LayoutDashboard },
+                { id: 'movimientos', label: 'Ingresos y Egresos', icon: ReceiptText },
+                { id: 'inversiones', label: 'Inversiones & ROI', icon: TrendingUp, badge: 'PRO' },
+                { id: 'pendientes', label: 'Lista de Compromisos', icon: ListTodo, count: tasks.filter(t => !t.completed).length },
+                { id: 'aprobaciones', label: 'Pendientes de Firma', icon: FileCheck2, count: pendingMovements.length },
+              ].map(item => {
+                const Icon = item.icon
+                const isActive = activeTab === item.id
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      sounds.playPop()
+                      setActiveTab(item.id as any)
+                    }}
+                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
+                      isActive
+                        ? 'bg-gradient-to-r from-violet-600/25 to-emerald-600/15 text-white border border-purple-500/30 shadow-[0_0_15px_rgba(147,51,234,0.2)]'
+                        : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon size={17} className={isActive ? 'text-emerald-400' : 'text-zinc-400'} />
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 font-black text-[9px] border border-emerald-500/30">
+                        {item.badge}
+                      </span>
+                    )}
+                    {typeof item.count === 'number' && item.count > 0 && (
+                      <span className="size-5 flex items-center justify-center rounded-full bg-amber-500 text-black text-[10px] font-black shadow-[0_0_10px_rgba(245,158,11,0.5)]">
+                        {item.count}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
             </nav>
           </div>
 
           <div>
-            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Reportería</p>
+            <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400">Reportería & Sistema</p>
             <nav className="space-y-1">
               <button
-                onClick={() => setActiveTab('reportes')}
+                onClick={() => {
+                  sounds.playPop()
+                  setActiveTab('reportes')
+                }}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
                   activeTab === 'reportes'
-                    ? 'bg-gradient-to-r from-violet-600/20 to-fuchsia-600/10 text-white border border-purple-500/30 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+                    ? 'bg-gradient-to-r from-violet-600/25 to-emerald-600/15 text-white border border-purple-500/30 shadow-[0_0_15px_rgba(147,51,234,0.2)]'
                     : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
               >
-                <BarChart3 size={17} className={activeTab === 'reportes' ? 'text-violet-400' : 'text-zinc-400'} />
+                <BarChart3 size={17} className={activeTab === 'reportes' ? 'text-emerald-400' : 'text-zinc-400'} />
                 <span>Reportes Financieros</span>
               </button>
 
               <button
-                onClick={() => setActiveTab('configuracion')}
+                onClick={() => {
+                  sounds.playPop()
+                  setActiveTab('configuracion')
+                }}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
                   activeTab === 'configuracion'
-                    ? 'bg-gradient-to-r from-violet-600/20 to-fuchsia-600/10 text-white border border-purple-500/30 shadow-[0_0_15px_rgba(147,51,234,0.15)]'
+                    ? 'bg-gradient-to-r from-violet-600/25 to-emerald-600/15 text-white border border-purple-500/30 shadow-[0_0_15px_rgba(147,51,234,0.2)]'
                     : 'text-zinc-400 hover:text-white hover:bg-white/[0.04]'
                 }`}
               >
-                <Settings2 size={17} className={activeTab === 'configuracion' ? 'text-violet-400' : 'text-zinc-400'} />
+                <Settings2 size={17} className={activeTab === 'configuracion' ? 'text-emerald-400' : 'text-zinc-400'} />
                 <span>Configuración & Claves</span>
               </button>
             </nav>
@@ -646,9 +1072,9 @@ export default function Page() {
 
         {/* Perfil del Fundador Autenticado */}
         <div className="p-4 border-t border-white/[0.06] bg-[#090a12]/70 space-y-2">
-          <div className="flex items-center justify-between p-2.5 rounded-xl border border-white/[0.08] bg-[#0c0d16]">
+          <div className="flex items-center justify-between p-2.5 rounded-2xl liquid-glass">
             <div className="flex items-center gap-2.5 min-w-0">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-tr from-violet-600 to-indigo-600 text-xs font-black text-white">
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-500 to-violet-600 text-xs font-black text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]">
                 {activeFounderObj.shortName.slice(0, 2).toUpperCase()}
               </div>
               <div className="min-w-0">
@@ -659,62 +1085,93 @@ export default function Page() {
             <button
               onClick={handleLogout}
               className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-white/[0.05] transition"
-              title="Cambiar de fundador / Bloquear con PIN"
+              title="Bloquear sesión con PIN"
             >
               <LogOut size={15} />
             </button>
           </div>
 
           <div className="flex items-center justify-between px-1 text-[10px] text-zinc-400">
-            <span>Sesión verificada: PIN {activeFounderObj.pin}</span>
             <span className="flex items-center gap-1 text-emerald-400">
-              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Activo
+              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Conectado
             </span>
+            <button
+              onClick={handleLogout}
+              className="text-purple-400 hover:underline font-bold"
+            >
+              Cambiar socio
+            </button>
           </div>
         </div>
       </aside>
 
-      {/* Contenido Principal */}
-      <div className="relative flex-1 lg:pl-[260px] flex flex-col min-w-0 z-10">
+      {/* Contenedor Principal */}
+      <div className="relative flex-1 lg:pl-[265px] flex flex-col min-w-0 z-10">
         {/* Header superior */}
-        <header className="sticky top-0 z-20 flex h-[74px] items-center justify-between border-b border-white/[0.08] bg-[#050508]/85 px-4 md:px-8 backdrop-blur-xl">
+        <header className="sticky top-0 z-20 flex h-[74px] items-center justify-between border-b border-white/[0.08] bg-[#040508]/85 px-4 md:px-8 backdrop-blur-2xl">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setMobileMenuOpen(true)}
+              onClick={() => {
+                sounds.playPop()
+                setMobileMenuOpen(true)
+              }}
               className="p-2 rounded-lg border border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white lg:hidden"
             >
               <Menu size={20} />
             </button>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                  {currentTimeDisplay || 'Cargando hora...'}
-                </span>
+            <div className="flex items-center gap-3">
+              <div className="size-8 rounded-full overflow-hidden border border-white/[0.1] lg:hidden">
+                <Image src="/haze-logo-circle.png" alt="Logo" width={32} height={32} />
               </div>
-              <h1 className="text-lg md:text-xl font-black tracking-tight text-white">
-                Dashboard Financiero <span className="text-purple-400">HAZE</span>
-              </h1>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    {currentTimeDisplay || 'Barranquilla · COP'}
+                  </span>
+                </div>
+                <h1 className="text-lg md:text-xl font-black tracking-tight text-white flex items-center gap-2">
+                  <span>Dashboard Financiero</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
+                    Liquid Pro
+                  </span>
+                </h1>
+              </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {/* Toggle de Sonido */}
+            <button
+              onClick={() => {
+                const next = sounds.toggle()
+                setSoundEnabled(next)
+                notify(next ? 'Sonidos activados 🔊' : 'Sonidos desactivados 🔇')
+              }}
+              className="p-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-zinc-400 hover:text-white transition"
+              title={soundEnabled ? 'Silenciar sonidos' : 'Activar efectos de sonido'}
+            >
+              {soundEnabled ? <Volume2 size={16} className="text-emerald-400" /> : <VolumeX size={16} />}
+            </button>
+
             {/* Indicador de Fundador Activo */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs">
-              <UserCheck size={14} className="text-violet-400" />
+              <UserCheck size={14} className="text-emerald-400" />
               <span className="font-bold text-white">{activeFounderObj.shortName}</span>
-              <span className="text-[10px] text-zinc-400">({activeFounderObj.badge})</span>
               <button
                 onClick={handleLogout}
                 className="ml-1 text-[10px] text-purple-400 hover:underline"
               >
-                Cambiar
+                (Cambiar)
               </button>
             </div>
 
             <button
-              onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white text-xs font-black shadow-[0_0_20px_rgba(147,51,234,0.35)] transition active:scale-[0.98]"
+              onClick={() => {
+                sounds.playPop()
+                setShowModal(true)
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-violet-600 to-fuchsia-600 hover:opacity-95 text-white text-xs font-black shadow-[0_0_20px_rgba(16,185,129,0.3)] transition active:scale-[0.98]"
             >
               <Plus size={16} />
               <span>Nuevo movimiento</span>
@@ -724,27 +1181,30 @@ export default function Page() {
 
         {/* VISTAS PRINCIPALES */}
         <main className="flex-1 p-4 md:p-8 max-w-[1440px] mx-auto w-full space-y-6">
-          {/* SECCIÓN 1: RESUMEN (Solo muestra movimientos con doble aprobación completada) */}
+          {/* SECCIÓN 1: RESUMEN EJECUTIVO */}
           {activeTab === 'resumen' && (
             <div className="space-y-6 animate-fadeIn">
-              {/* Hero Banner */}
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 p-6 rounded-2xl border border-white/[0.08] bg-gradient-to-b from-white/[0.04] to-transparent">
+              {/* Hero Liquid Glass */}
+              <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 p-6 rounded-3xl liquid-glass liquid-glass-accent">
                 <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 mb-2 rounded-full border border-purple-500/30 bg-purple-950/30 text-[10px] font-bold uppercase tracking-wider text-purple-300">
-                    <ShieldCheck size={12} className="text-fuchsia-400" />
-                    Regla Mancomunada: Requiere Aprobación de Ambos (Luis & Yoinner)
+                  <div className="inline-flex items-center gap-2 px-3 py-1 mb-2 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+                    <ShieldCheck size={12} className="text-emerald-400" />
+                    Protocolo de Doble Firma Mancomunada Activo (Luis & Yoinner)
                   </div>
                   <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white">
-                    Finanzas en Pesos Colombianos <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">(COP)</span>
+                    Finanzas & Capital <span className="bg-gradient-to-r from-emerald-400 via-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Haze Technologies</span>
                   </h2>
                   <p className="mt-1 text-xs md:text-sm text-zinc-400 max-w-xl">
-                    Cada ingreso y egreso solo se refleja en el balance tras la firma de Luis (1206) y Yoinner (1205).
+                    Control mancomunado en Pesos (COP). Retornos de inversión, compromisos financieros y auditoría en tiempo real.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setShowBalance(!showBalance)}
+                    onClick={() => {
+                      sounds.playPop()
+                      setShowBalance(!showBalance)
+                    }}
                     className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs font-semibold text-zinc-300 hover:text-white transition"
                   >
                     {showBalance ? <EyeOff size={14} /> : <Eye size={14} />}
@@ -753,14 +1213,13 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* Métricas Principales en PESOS (COP) */}
+              {/* 4 Métricas Principales en PESOS (COP) con Liquid Glass */}
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
                 {/* Balance Disponible */}
-                <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 hover:border-violet-500/30 transition shadow-lg relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="p-5 rounded-3xl liquid-glass hover:border-emerald-500/40 transition shadow-lg relative overflow-hidden group">
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Balance disponible</p>
-                    <div className="p-2 rounded-xl bg-violet-950/40 border border-violet-500/20 text-violet-400">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Balance Disponible</p>
+                    <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-emerald-400">
                       <Wallet size={18} />
                     </div>
                   </div>
@@ -778,9 +1237,9 @@ export default function Page() {
                 </div>
 
                 {/* Ingresos Aprobados */}
-                <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 hover:border-emerald-500/30 transition shadow-lg relative overflow-hidden">
+                <div className="p-5 rounded-3xl liquid-glass hover:border-emerald-500/40 transition shadow-lg relative overflow-hidden">
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Ingresos aprobados</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Ingresos Validados</p>
                     <div className="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/20 text-emerald-400">
                       <ArrowUpRight size={18} />
                     </div>
@@ -790,15 +1249,15 @@ export default function Page() {
                       {showBalance ? formatCOP(totalIncome) : '••••••••'}
                     </p>
                     <p className="mt-1 text-[11px] text-zinc-400">
-                      {approvedMovements.filter(m => m.type === 'Ingreso').length} ingresos validados por ambos
+                      {approvedMovements.filter(m => m.type === 'Ingreso').length} ingresos con firma mutua
                     </p>
                   </div>
                 </div>
 
                 {/* Egresos Aprobados */}
-                <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 hover:border-rose-500/30 transition shadow-lg relative overflow-hidden">
+                <div className="p-5 rounded-3xl liquid-glass hover:border-rose-500/40 transition shadow-lg relative overflow-hidden">
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Egresos aprobados</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Egresos Validados</p>
                     <div className="p-2 rounded-xl bg-rose-950/40 border border-rose-500/20 text-rose-400">
                       <ArrowDownRight size={18} />
                     </div>
@@ -813,41 +1272,43 @@ export default function Page() {
                   </div>
                 </div>
 
-                {/* Pendientes de Doble Aprobación */}
+                {/* Inversión & ROI Global */}
                 <div
-                  onClick={() => setActiveTab('aprobaciones')}
-                  className="p-5 rounded-2xl border border-amber-500/30 bg-[#0c0d16]/90 hover:border-amber-400 transition shadow-lg relative overflow-hidden cursor-pointer"
+                  onClick={() => {
+                    sounds.playPop()
+                    setActiveTab('inversiones')
+                  }}
+                  className="p-5 rounded-3xl liquid-glass hover:border-violet-500/40 transition shadow-lg relative overflow-hidden cursor-pointer"
                 >
                   <div className="flex items-center justify-between">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-amber-300">Pendientes de Firma</p>
-                    <div className="p-2 rounded-xl bg-amber-950/40 border border-amber-500/20 text-amber-400">
-                      <ShieldAlert size={18} />
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-purple-300">ROI Inversiones</p>
+                    <div className="p-2 rounded-xl bg-purple-950/40 border border-purple-500/20 text-purple-400">
+                      <TrendingUp size={18} />
                     </div>
                   </div>
                   <div className="mt-4">
-                    <p className="text-xl sm:text-2xl font-black text-amber-400 tracking-tight">
-                      {pendingMovements.length < 10 ? `0${pendingMovements.length}` : pendingMovements.length}
+                    <p className={`text-xl sm:text-2xl font-black tracking-tight ${investmentStats.overallROI >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                      {investmentStats.overallROI > 0 ? '+' : ''}{investmentStats.overallROI.toFixed(1)}%
                     </p>
                     <p className="mt-1 text-[11px] text-zinc-400">
-                      {pendingMovements.length === 0
-                        ? 'Todo conciliado al 100%'
-                        : 'Clic para revisar y firmar'}
+                      {investments.length} etapas · {investmentStats.multiple.toFixed(2)}x retorno
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Gráficos: Flujo en COP & Distribución */}
+              {/* Gráficas: Flujo en COP & Distribución */}
               <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2 p-6 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 space-y-5">
+                {/* Flujo de Caja Semestral SVG Interactivo */}
+                <div className="xl:col-span-2 p-6 rounded-3xl liquid-glass space-y-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-black text-white">Flujo de Caja en Pesos (COP)</p>
-                      <p className="text-xs text-zinc-400">Ingresos vs. Egresos con doble firma</p>
+                      <p className="text-sm font-black text-white">Flujo de Caja · Semestral (COP)</p>
+                      <p className="text-xs text-zinc-400">Ingresos vs. Egresos conciliados</p>
                     </div>
                     <div className="flex items-center gap-4 text-xs font-semibold">
-                      <div className="flex items-center gap-1.5 text-violet-400">
-                        <span className="size-2 rounded-full bg-violet-500 shadow-[0_0_8px_#8b5cf6]" />
+                      <div className="flex items-center gap-1.5 text-emerald-400">
+                        <span className="size-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
                         <span>Ingresos</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-fuchsia-400">
@@ -858,24 +1319,24 @@ export default function Page() {
                   </div>
 
                   <div className="pt-6 pb-2">
-                    <div className="flex items-end justify-between gap-3 h-[200px] border-b border-white/[0.08] px-2">
+                    <div className="flex items-end justify-between gap-3 h-[210px] border-b border-white/[0.08] px-2">
                       {['May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct'].map(month => {
                         const isCurrent = month === 'Oct'
-                        const incomeHeight = isCurrent && totalIncome > 0 ? 'h-32' : 'h-3'
+                        const incomeHeight = isCurrent && totalIncome > 0 ? 'h-36' : 'h-3'
                         const expenseHeight = isCurrent && totalExpense > 0 ? 'h-24' : 'h-3'
                         return (
                           <div key={month} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
                             <div className="flex items-end gap-1.5 h-full">
                               <div
-                                className={`w-3.5 sm:w-4 rounded-t-md bg-gradient-to-t from-violet-600 to-indigo-500 transition-all ${incomeHeight} group-hover:brightness-125`}
+                                className={`w-3.5 sm:w-5 rounded-t-lg bg-gradient-to-t from-emerald-600 via-teal-500 to-cyan-400 transition-all ${incomeHeight} group-hover:brightness-125 shadow-[0_0_15px_rgba(16,185,129,0.25)]`}
                                 title={`Ingresos ${month}: ${isCurrent ? formatCOP(totalIncome) : '$ 0 COP'}`}
                               />
                               <div
-                                className={`w-3.5 sm:w-4 rounded-t-md bg-gradient-to-t from-fuchsia-600 to-pink-500 transition-all ${expenseHeight} group-hover:brightness-125`}
+                                className={`w-3.5 sm:w-5 rounded-t-lg bg-gradient-to-t from-fuchsia-600 to-pink-500 transition-all ${expenseHeight} group-hover:brightness-125 shadow-[0_0_15px_rgba(217,70,239,0.25)]`}
                                 title={`Egresos ${month}: ${isCurrent ? formatCOP(totalExpense) : '$ 0 COP'}`}
                               />
                             </div>
-                            <span className={`text-[11px] font-semibold ${isCurrent ? 'text-violet-400 font-bold' : 'text-zinc-400'}`}>
+                            <span className={`text-[11px] font-semibold ${isCurrent ? 'text-emerald-400 font-bold' : 'text-zinc-400'}`}>
                               {month}
                             </span>
                           </div>
@@ -892,19 +1353,19 @@ export default function Page() {
                 </div>
 
                 {/* Donut de Distribución */}
-                <div className="p-6 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 flex flex-col justify-between space-y-6">
+                <div className="p-6 rounded-3xl liquid-glass flex flex-col justify-between space-y-6">
                   <div>
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-black text-white">Distribución de Gastos</p>
                         <p className="text-xs text-zinc-400">Porcentajes en Pesos (COP)</p>
                       </div>
-                      <CircleDollarSign size={20} className="text-fuchsia-400" />
+                      <CircleDollarSign size={20} className="text-emerald-400" />
                     </div>
 
                     <div className="my-6 flex items-center justify-center">
-                      <div className="relative flex size-[150px] items-center justify-center rounded-full bg-gradient-to-tr from-violet-600/20 via-fuchsia-600/20 to-purple-600/10 p-3 border border-white/[0.08]">
-                        <div className="flex size-full flex-col items-center justify-center rounded-full bg-[#07080f] border border-white/[0.06] shadow-inner text-center">
+                      <div className="relative flex size-[155px] items-center justify-center rounded-full bg-gradient-to-tr from-emerald-500/20 via-violet-500/20 to-fuchsia-500/20 p-3 border border-white/[0.08] shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+                        <div className="flex size-full flex-col items-center justify-center rounded-full bg-[#05060c] border border-white/[0.06] shadow-inner text-center">
                           <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Gastos</span>
                           <span className="text-xs font-black text-white px-2 truncate max-w-full">
                             {formatCOP(totalExpense)}
@@ -926,108 +1387,79 @@ export default function Page() {
                     </div>
                   </div>
 
-                  <div className="p-3 rounded-xl border border-white/[0.06] bg-white/[0.02] text-[11px] text-zinc-400">
-                    Líneas de ingreso configuradas: HazeCard NFC, Software Web, Negocio Aparte e Inteligencia Artificial.
+                  <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.05] text-[11px] text-zinc-400">
+                    Líneas de negocio: HazeCard NFC, Software SaaS, Negocio Aparte y Proyectos de Inversión.
                   </div>
                 </div>
               </div>
 
-              {/* Actividad Reciente (Solo aprobados por ambos para cumplir la regla) */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 overflow-hidden">
-                <div className="p-5 md:p-6 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-sm font-black text-white">Movimientos Aprobados por Ambos</h3>
-                    <p className="text-xs text-zinc-400">Operaciones con doble firma que impactan el balance en Pesos (COP)</p>
+              {/* Mini Widget de Compromisos y Tareas Financieras */}
+              <div className="p-6 rounded-3xl liquid-glass space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <ListTodo className="text-emerald-400" size={18} />
+                    <div>
+                      <h3 className="text-sm font-black text-white">Compromisos & Tareas Financieras</h3>
+                      <p className="text-xs text-zinc-400">Pendientes inmediatos para los fundadores</p>
+                    </div>
                   </div>
-
                   <button
-                    onClick={() => setActiveTab('aprobaciones')}
-                    className="text-xs font-bold text-purple-400 hover:text-purple-300 flex items-center gap-1.5"
+                    onClick={() => {
+                      sounds.playPop()
+                      setShowTaskModal(true)
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600/30 hover:bg-purple-600/50 border border-purple-500/30 text-purple-200 text-xs font-bold transition"
                   >
-                    <span>Ver {pendingMovements.length} pendientes de firma</span> →
+                    <Plus size={14} /> Agregar Pendiente
                   </button>
                 </div>
 
-                {approvedMovements.length === 0 ? (
-                  <div className="py-16 px-4 text-center">
-                    <ReceiptText size={28} className="mx-auto text-zinc-400 mb-3" />
-                    <p className="text-sm font-bold text-white">No hay movimientos aprobados por ambos aún</p>
-                    <p className="text-xs text-zinc-400 max-w-md mx-auto mt-1">
-                      Para que una operación aparezca en el balance y en este listado, tanto Luis Alfonso (1206) como Yoinner (1205) deben dar su firma de aprobación.
-                    </p>
-                    <button
-                      onClick={() => setShowModal(true)}
-                      className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/30 text-violet-300 text-xs font-bold transition"
-                    >
-                      <Plus size={14} /> Registrar nuevo movimiento
-                    </button>
-                  </div>
+                {tasks.length === 0 ? (
+                  <p className="text-xs text-zinc-400 py-3 italic text-center">
+                    No hay compromisos anotados. Agrega pagos, facturas o tareas por realizar con el botón superior.
+                  </p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-[#080911] text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/[0.06]">
-                        <tr>
-                          <th className="px-6 py-3.5">Concepto</th>
-                          <th className="px-4 py-3.5">Categoría</th>
-                          <th className="px-4 py-3.5">Origen / Destino</th>
-                          <th className="px-4 py-3.5">Firmas</th>
-                          <th className="px-6 py-3.5 text-right">Monto (COP)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/[0.04]">
-                        {approvedMovements.map(item => (
-                          <tr key={item.id} className="hover:bg-white/[0.02] transition">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <span
-                                  className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
-                                    item.type === 'Ingreso'
-                                      ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-500/30'
-                                      : 'bg-rose-950/50 text-rose-400 border border-rose-500/30'
-                                  }`}
-                                >
-                                  {item.type === 'Ingreso' ? <ArrowUpRight size={15} /> : <ArrowDownRight size={15} />}
-                                </span>
-                                <div>
-                                  <p className="font-bold text-white">{item.concept}</p>
-                                  <p className="text-[10px] text-zinc-400">
-                                    {item.date} · {item.time} (Registrado automáticamente)
-                                  </p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-4 py-4 text-zinc-300">{item.category}</td>
-                            <td className="px-4 py-4 text-zinc-400">{item.sourceDestination}</td>
-                            <td className="px-4 py-4">
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-950/60 text-emerald-400 border border-emerald-500/30">
-                                <Check size={12} /> Luis & Yoinner (Doble Firma)
-                              </span>
-                            </td>
-                            <td
-                              className={`px-6 py-4 text-right font-black text-sm ${
-                                item.type === 'Ingreso' ? 'text-emerald-400' : 'text-rose-400'
-                              }`}
-                            >
-                              {item.type === 'Ingreso' ? '+' : '-'} {formatCOP(item.amount)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {tasks.slice(0, 3).map(task => (
+                      <div
+                        key={task.id}
+                        onClick={() => toggleTask(task.id)}
+                        className={`p-3.5 rounded-2xl border transition cursor-pointer flex items-start gap-3 ${
+                          task.completed
+                            ? 'border-emerald-500/20 bg-emerald-950/10 opacity-60'
+                            : 'border-white/[0.08] bg-black/40 hover:border-purple-500/40'
+                        }`}
+                      >
+                        <div className={`mt-0.5 size-4 rounded-md border flex items-center justify-center ${
+                          task.completed ? 'bg-emerald-500 border-emerald-500 text-black' : 'border-zinc-400'
+                        }`}>
+                          {task.completed && <Check size={12} strokeWidth={3} />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs font-bold ${task.completed ? 'line-through text-zinc-400' : 'text-white'}`}>
+                            {task.title}
+                          </p>
+                          <div className="flex items-center gap-2 mt-1 text-[10px] text-zinc-400">
+                            {task.estimatedAmount && <span className="font-semibold text-emerald-400">{formatCOP(task.estimatedAmount)}</span>}
+                            <span>Para: {task.assignedTo}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* SECCIÓN 2: INGRESOS Y EGRESOS (Todos los movimientos con detalle) */}
+          {/* SECCIÓN 2: INGRESOS Y EGRESOS */}
           {activeTab === 'movimientos' && (
             <div className="space-y-6 animate-fadeIn">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl liquid-glass">
                 <div>
                   <h2 className="text-xl font-black text-white">Registro de Ingresos y Egresos (COP)</h2>
                   <p className="text-xs text-zinc-400 mt-0.5">
-                    Historial de todas las solicitudes creadas, estado de aprobación y registro exacto por hora.
+                    Historial de todas las solicitudes, hora de registro automática y control mancomunado.
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -1036,11 +1468,14 @@ export default function Page() {
                     className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.06] text-xs font-semibold text-zinc-200 transition"
                   >
                     <Download size={15} />
-                    <span>Exportar Aprobados (CSV)</span>
+                    <span>Exportar CSV</span>
                   </button>
                   <button
-                    onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-xs font-bold shadow-lg transition"
+                    onClick={() => {
+                      sounds.playPop()
+                      setShowModal(true)
+                    }}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-violet-600 to-fuchsia-600 text-white text-xs font-bold shadow-lg transition"
                   >
                     <Plus size={15} />
                     <span>Nuevo Movimiento</span>
@@ -1049,7 +1484,7 @@ export default function Page() {
               </div>
 
               {/* Filtros */}
-              <div className="p-4 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/70 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+              <div className="p-4 rounded-3xl liquid-glass flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
                 <div className="flex-1 relative">
                   <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
                   <input
@@ -1066,9 +1501,12 @@ export default function Page() {
                     {(['Todos', 'Ingreso', 'Egreso'] as const).map(tab => (
                       <button
                         key={tab}
-                        onClick={() => setTypeFilter(tab)}
+                        onClick={() => {
+                          sounds.playPop()
+                          setTypeFilter(tab)
+                        }}
                         className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                          typeFilter === tab ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-white'
+                          typeFilter === tab ? 'bg-purple-600 text-white' : 'text-zinc-400 hover:text-white'
                         }`}
                       >
                         {tab}
@@ -1079,19 +1517,19 @@ export default function Page() {
               </div>
 
               {/* Listado */}
-              <div className="rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 overflow-hidden">
+              <div className="rounded-3xl liquid-glass overflow-hidden">
                 {filteredMovements.length === 0 ? (
                   <div className="py-20 px-4 text-center">
                     <ReceiptText size={32} className="mx-auto text-zinc-400 mb-3" />
                     <p className="text-sm font-bold text-white">No hay movimientos registrados</p>
                     <p className="text-xs text-zinc-400 max-w-sm mx-auto mt-1">
-                      Registra una nueva operación financiera y ambas firmas (Luis y Yoinner) serán solicitadas.
+                      Registra una operación financiera para que ambos fundadores (Luis y Yoinner) la firmen.
                     </p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs">
-                      <thead className="bg-[#080911] text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/[0.06]">
+                      <thead className="bg-[#080911]/90 text-[10px] font-bold uppercase tracking-wider text-zinc-400 border-b border-white/[0.06]">
                         <tr>
                           <th className="px-6 py-3.5">ID / Hora Exacta</th>
                           <th className="px-4 py-3.5">Concepto & Justificación</th>
@@ -1106,7 +1544,7 @@ export default function Page() {
                         {filteredMovements.map(m => (
                           <tr key={m.id} className="hover:bg-white/[0.02] transition">
                             <td className="px-6 py-4">
-                              <p className="font-mono text-[11px] font-bold text-violet-400">{m.id}</p>
+                              <p className="font-mono text-[11px] font-bold text-purple-400">{m.id}</p>
                               <p className="text-[10px] text-zinc-400">{m.date} · {m.time}</p>
                             </td>
                             <td className="px-4 py-4 max-w-xs">
@@ -1151,17 +1589,307 @@ export default function Page() {
             </div>
           )}
 
-          {/* SECCIÓN 3: PENDIENTES DE APROBACIÓN */}
+          {/* SECCIÓN 3: INVERSIONES & RETORNO DE GANANCIAS (ROI) */}
+          {activeTab === 'inversiones' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl liquid-glass liquid-glass-accent">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 mb-2 rounded-full border border-emerald-500/30 bg-emerald-950/30 text-[10px] font-bold uppercase tracking-wider text-emerald-300">
+                    <TrendingUp size={12} /> Capital Invertido & Retorno de Ganancias
+                  </div>
+                  <h2 className="text-xl md:text-2xl font-black text-white">Inversiones por Etapa (ROI)</h2>
+                  <p className="text-xs text-zinc-400 mt-1 max-w-xl">
+                    Invertimos dinero extraído del balance para producir lotes, escalar software o impulsar negocios. Aquí calculamos exactamente cuánto porcentaje de retorno y beneficio estamos generando.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    sounds.playPop()
+                    setShowInvestmentModal(true)
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-black shadow-[0_0_20px_rgba(16,185,129,0.3)] transition"
+                >
+                  <Plus size={16} />
+                  <span>+ Invertir en Nueva Etapa</span>
+                </button>
+              </div>
+
+              {/* Métricas de Rendimiento de Inversiones */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-5 rounded-3xl liquid-glass">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Total Invertido</p>
+                  <p className="text-xl font-black text-white mt-2">{formatCOP(investmentStats.totalInvested)}</p>
+                  <p className="text-[10px] text-zinc-400 mt-1">Extraído del balance para proyectos</p>
+                </div>
+
+                <div className="p-5 rounded-3xl liquid-glass">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Total Retornado</p>
+                  <p className="text-xl font-black text-emerald-400 mt-2">{formatCOP(investmentStats.totalReturned)}</p>
+                  <p className="text-[10px] text-zinc-400 mt-1">Ganancias brutas ingresadas</p>
+                </div>
+
+                <div className="p-5 rounded-3xl liquid-glass">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Ganancia Neta</p>
+                  <p className={`text-xl font-black mt-2 ${investmentStats.netProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {investmentStats.netProfit >= 0 ? '+' : ''}{formatCOP(investmentStats.netProfit)}
+                  </p>
+                  <p className="text-[10px] text-zinc-400 mt-1">Beneficio neto para los fundadores</p>
+                </div>
+
+                <div className="p-5 rounded-3xl liquid-glass">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">ROI Global & Múltiplo</p>
+                  <p className={`text-xl font-black mt-2 ${investmentStats.overallROI >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    {investmentStats.overallROI >= 0 ? '+' : ''}{investmentStats.overallROI.toFixed(1)}% ({investmentStats.multiple.toFixed(2)}x)
+                  </p>
+                  <p className="text-[10px] text-zinc-400 mt-1">Rendimiento global sobre capital</p>
+                </div>
+              </div>
+
+              {/* Lista de Inversiones Activas */}
+              <div className="space-y-4">
+                <h3 className="text-sm font-black text-white">Etapas y Proyectos en Inversión</h3>
+
+                {investments.length === 0 ? (
+                  <div className="py-20 px-4 text-center rounded-3xl liquid-glass">
+                    <TrendingUp size={36} className="mx-auto text-emerald-400/60 mb-3" />
+                    <p className="text-base font-bold text-white">Aún no hay etapas de inversión registradas</p>
+                    <p className="text-xs text-zinc-400 max-w-md mx-auto mt-1">
+                      Comienza registrando la primera inversión en un lote de HazeCards, desarrollo de software o negocio aparte para medir su retorno y porcentaje de ganancia.
+                    </p>
+                    <button
+                      onClick={() => {
+                        sounds.playPop()
+                        setShowInvestmentModal(true)
+                      }}
+                      className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition"
+                    >
+                      <Plus size={14} /> Invertir primer capital
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {investments.map(inv => {
+                      const recoveryPercent = inv.investedAmount > 0 ? Math.min(100, Math.round((inv.returnedAmount / inv.investedAmount) * 100)) : 0
+                      const roi = inv.investedAmount > 0 ? (((inv.returnedAmount - inv.investedAmount) / inv.investedAmount) * 100).toFixed(1) : '0.0'
+                      const profit = inv.returnedAmount - inv.investedAmount
+
+                      return (
+                        <div key={inv.id} className="p-6 rounded-3xl liquid-glass space-y-4 relative overflow-hidden">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-[10px] text-purple-400">{inv.id}</span>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-white/[0.04] text-zinc-300 border border-white/[0.06]">
+                                  {inv.stage}
+                                </span>
+                              </div>
+                              <h4 className="text-base font-black text-white mt-1">{inv.projectName}</h4>
+                            </div>
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black ${
+                              inv.status === 'Rentable'
+                                ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/30'
+                                : inv.status === 'Recuperando'
+                                ? 'bg-teal-950/60 text-teal-300 border border-teal-500/30'
+                                : 'bg-purple-950/60 text-purple-300 border border-purple-500/30'
+                            }`}>
+                              {inv.status}
+                            </span>
+                          </div>
+
+                          {/* Comparativa Invertido vs Retornado */}
+                          <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-black/40 border border-white/[0.04] text-xs">
+                            <div>
+                              <p className="text-[10px] text-zinc-400">Capital Invertido:</p>
+                              <p className="font-black text-white">{formatCOP(inv.investedAmount)}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] text-zinc-400">Retorno Recaudado:</p>
+                              <p className="font-black text-emerald-400">{formatCOP(inv.returnedAmount)}</p>
+                            </div>
+                          </div>
+
+                          {/* Barra de Progreso de Retorno */}
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-[11px] text-zinc-400">Recuperación de Capital:</span>
+                              <span className="font-bold text-white">{recoveryPercent}%</span>
+                            </div>
+                            <div className="h-2 w-full rounded-full bg-white/[0.06] overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-teal-500 via-emerald-400 to-cyan-400 transition-all shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                                style={{ width: `${recoveryPercent}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Métricas de Ganancia Neta y ROI */}
+                          <div className="flex items-center justify-between pt-2 border-t border-white/[0.06] text-xs">
+                            <div>
+                              <p className="text-[10px] text-zinc-400">Ganancia Neta:</p>
+                              <p className={`font-black ${profit >= 0 ? 'text-emerald-400' : 'text-zinc-300'}`}>
+                                {profit >= 0 ? '+' : ''}{formatCOP(profit)}
+                              </p>
+                            </div>
+
+                            <div className="text-right">
+                              <p className="text-[10px] text-zinc-400">Retorno (ROI):</p>
+                              <p className={`font-black text-sm ${parseFloat(roi) >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                {parseFloat(roi) >= 0 ? '+' : ''}{roi}%
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Botón para ingresar ganancia / retorno */}
+                          <button
+                            onClick={() => {
+                              sounds.playPop()
+                              setSelectedInvestmentForReturn(inv)
+                              setShowReturnModal(true)
+                            }}
+                            className="w-full py-2.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 text-xs font-bold transition flex items-center justify-center gap-2"
+                          >
+                            <DollarSign size={14} /> + Registrar Retorno o Ganancia
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* SECCIÓN 4: LISTA DE PENDIENTES & COMPROMISOS FINANCIEROS */}
+          {activeTab === 'pendientes' && (
+            <div className="space-y-6 animate-fadeIn">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl liquid-glass">
+                <div>
+                  <h2 className="text-xl font-black text-white">Lista de Compromisos & Pendientes Financieros</h2>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Anota pagos de proveedores, cobros por realizar, renovaciones de software y pendientes de Luis y Yoinner.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    sounds.playPop()
+                    setShowTaskModal(true)
+                  }}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-xs font-bold shadow-lg transition"
+                >
+                  <Plus size={16} />
+                  <span>+ Agregar Pendiente</span>
+                </button>
+              </div>
+
+              {/* Filtro de tareas */}
+              <div className="flex items-center gap-2">
+                {(['Todos', 'Pendientes', 'Completados'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => {
+                      sounds.playPop()
+                      setTaskFilter(tab)
+                    }}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                      taskFilter === tab
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-white/[0.03] text-zinc-400 hover:text-white border border-white/[0.06]'
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              {/* Lista */}
+              {filteredTasks.length === 0 ? (
+                <div className="py-20 px-4 text-center rounded-3xl liquid-glass">
+                  <ListTodo size={36} className="mx-auto text-zinc-400 mb-3" />
+                  <p className="text-base font-bold text-white">No hay pendientes en esta vista</p>
+                  <p className="text-xs text-zinc-400 max-w-sm mx-auto mt-1">
+                    Crea un nuevo compromiso o pago futuro para mantener organizada la operación financiera de HAZE.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredTasks.map(task => (
+                    <div
+                      key={task.id}
+                      className={`p-4 rounded-2xl liquid-glass flex items-center justify-between gap-4 transition ${
+                        task.completed ? 'opacity-60 bg-white/[0.01]' : 'hover:border-purple-500/30'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <button
+                          onClick={() => toggleTask(task.id)}
+                          className={`size-6 rounded-lg border flex items-center justify-center transition shrink-0 ${
+                            task.completed
+                              ? 'bg-emerald-500 border-emerald-500 text-black shadow-[0_0_10px_rgba(16,185,129,0.5)]'
+                              : 'border-white/[0.2] bg-black/40 hover:border-purple-500'
+                          }`}
+                        >
+                          {task.completed && <Check size={14} strokeWidth={3} />}
+                        </button>
+                        <div className="min-w-0">
+                          <p className={`text-sm font-bold ${task.completed ? 'line-through text-zinc-400' : 'text-white'}`}>
+                            {task.title}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1 text-[11px] text-zinc-400">
+                            {task.estimatedAmount && (
+                              <span className="font-semibold text-emerald-400">
+                                {formatCOP(task.estimatedAmount)}
+                              </span>
+                            )}
+                            <span>·</span>
+                            <span>Asignado: <b className="text-zinc-200">{task.assignedTo}</b></span>
+                            {task.dueDate && (
+                              <>
+                                <span>·</span>
+                                <span className="flex items-center gap-1 text-purple-300">
+                                  <Calendar size={11} /> {task.dueDate}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          task.priority === 'Alta'
+                            ? 'bg-rose-950/60 text-rose-300 border border-rose-500/30'
+                            : task.priority === 'Media'
+                            ? 'bg-amber-950/60 text-amber-300 border border-amber-500/30'
+                            : 'bg-zinc-800 text-zinc-300'
+                        }`}>
+                          {task.priority}
+                        </span>
+
+                        <button
+                          onClick={() => deleteTask(task.id)}
+                          className="p-1.5 rounded-lg text-zinc-400 hover:text-rose-400 hover:bg-white/[0.05] transition"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SECCIÓN 5: PENDIENTES DE DOBLE APROBACIÓN */}
           {activeTab === 'aprobaciones' && (
             <div className="space-y-6 animate-fadeIn">
-              <div className="p-6 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="p-6 rounded-3xl liquid-glass flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 mb-2 rounded-full border border-amber-500/30 bg-amber-950/30 text-[10px] font-bold uppercase tracking-wider text-amber-300">
-                    <Lock size={12} /> Requiere Ambas Firmas (Luis Alfonso 1206 & Yoinner 1205)
+                    <Lock size={12} /> Requiere Ambas Firmas (Luis & Yoinner)
                   </div>
                   <h2 className="text-xl font-black text-white">Centro de Doble Aprobación</h2>
                   <p className="text-xs text-zinc-400 mt-1">
-                    Estás conectado como <b className="text-purple-300">{activeFounderObj.name}</b>. Puedes firmar tus aprobaciones correspondientes.
+                    Estás conectado como <b className="text-purple-300">{activeFounderObj.name}</b>. Puedes validar tus firmas correspondientes.
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1172,13 +1900,13 @@ export default function Page() {
               </div>
 
               {pendingMovements.length === 0 ? (
-                <div className="py-20 px-4 text-center rounded-2xl border border-white/[0.08] bg-[#0c0d16]/60">
+                <div className="py-20 px-4 text-center rounded-3xl liquid-glass">
                   <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 mb-3">
                     <CheckCircle2 size={28} />
                   </div>
                   <p className="text-base font-bold text-white">No hay operaciones pendientes de firma</p>
                   <p className="text-xs text-zinc-400 max-w-md mx-auto mt-1">
-                    Todos los ingresos y egresos registrados ya cuentan con la aprobación mutua de Luis y Yoinner, por lo que están visibles en el balance.
+                    Todos los ingresos y egresos registrados ya cuentan con la aprobación mutua de Luis y Yoinner y se reflejan en el balance.
                   </p>
                 </div>
               ) : (
@@ -1186,7 +1914,7 @@ export default function Page() {
                   {pendingMovements.map(item => (
                     <div
                       key={item.id}
-                      className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 space-y-4 shadow-lg hover:border-violet-500/30 transition"
+                      className="p-5 rounded-3xl liquid-glass space-y-4 shadow-lg hover:border-violet-500/40 transition"
                     >
                       <div className="flex items-start justify-between">
                         <div>
@@ -1204,7 +1932,7 @@ export default function Page() {
                         </span>
                       </div>
 
-                      <div className="p-3 rounded-xl bg-black/40 border border-white/[0.04] space-y-1.5 text-xs">
+                      <div className="p-3.5 rounded-2xl bg-black/40 border border-white/[0.04] space-y-1.5 text-xs">
                         <div className="flex justify-between text-zinc-400">
                           <span>Categoría:</span>
                           <span className="font-semibold text-zinc-200">{item.category}</span>
@@ -1215,7 +1943,7 @@ export default function Page() {
                         </div>
                         <div className="flex justify-between text-zinc-400">
                           <span>Solicitado por:</span>
-                          <span className="font-semibold text-violet-300">{item.registeredBy}</span>
+                          <span className="font-semibold text-purple-300">{item.registeredBy}</span>
                         </div>
                         <div className="pt-1.5 border-t border-white/[0.06]">
                           <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Justificación:</p>
@@ -1226,15 +1954,15 @@ export default function Page() {
                       {/* Firmas requeridas */}
                       <div className="pt-2 border-t border-white/[0.06] space-y-2.5">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                          Control de Aprobación Mancomunada
+                          Firmas Mancomunadas Requeridas
                         </p>
 
                         <div className="grid grid-cols-2 gap-2 text-xs">
-                          {/* Firma Luis Alfonso */}
-                          <div className={`p-2.5 rounded-xl border ${currentUser === 'luis' ? 'border-purple-500/40 bg-purple-950/20' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                          {/* Luis Alfonso */}
+                          <div className={`p-2.5 rounded-xl border ${currentUser === 'luis' ? 'border-purple-500/50 bg-purple-950/30' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                             <div className="flex items-center justify-between mb-1">
-                              <p className="text-[11px] font-bold text-white">Luis Alfonso (1206)</p>
-                              {currentUser === 'luis' && <span className="text-[9px] text-purple-400 font-bold">Tú</span>}
+                              <p className="text-[11px] font-bold text-white">Luis Alfonso</p>
+                              {currentUser === 'luis' && <span className="text-[9px] text-emerald-400 font-bold">Tú</span>}
                             </div>
                             {item.approvals.luis === 'Aprobado' ? (
                               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
@@ -1260,11 +1988,11 @@ export default function Page() {
                             )}
                           </div>
 
-                          {/* Firma Yoinner */}
-                          <div className={`p-2.5 rounded-xl border ${currentUser === 'yoinner' ? 'border-purple-500/40 bg-purple-950/20' : 'border-white/[0.06] bg-white/[0.02]'}`}>
+                          {/* Yoinner */}
+                          <div className={`p-2.5 rounded-xl border ${currentUser === 'yoinner' ? 'border-purple-500/50 bg-purple-950/30' : 'border-white/[0.06] bg-white/[0.02]'}`}>
                             <div className="flex items-center justify-between mb-1">
-                              <p className="text-[11px] font-bold text-white">Yoinner (1205)</p>
-                              {currentUser === 'yoinner' && <span className="text-[9px] text-purple-400 font-bold">Tú</span>}
+                              <p className="text-[11px] font-bold text-white">Yoinner</p>
+                              {currentUser === 'yoinner' && <span className="text-[9px] text-emerald-400 font-bold">Tú</span>}
                             </div>
                             {item.approvals.yoinner === 'Aprobado' ? (
                               <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400">
@@ -1291,16 +2019,15 @@ export default function Page() {
                           </div>
                         </div>
 
-                        {/* Indicador para cambiar de usuario si se requiere la otra firma */}
                         {((currentUser === 'luis' && item.approvals.yoinner === 'Pendiente') ||
                           (currentUser === 'yoinner' && item.approvals.luis === 'Pendiente')) && (
                           <div className="text-[10px] text-zinc-400 text-center pt-1">
-                            Falta la firma de {currentUser === 'luis' ? 'Yoinner Gándara' : 'Luis Alfonso Herrera'}.{' '}
+                            Falta la firma del otro fundador.{' '}
                             <button
                               onClick={handleLogout}
                               className="text-purple-400 font-bold hover:underline"
                             >
-                              Cambiar usuario (PIN)
+                              Cambiar socio (PIN)
                             </button>
                           </div>
                         )}
@@ -1312,10 +2039,10 @@ export default function Page() {
             </div>
           )}
 
-          {/* SECCIÓN 4: REPORTES */}
+          {/* SECCIÓN 6: REPORTES */}
           {activeTab === 'reportes' && (
             <div className="space-y-6 animate-fadeIn">
-              <div className="p-6 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="p-6 rounded-3xl liquid-glass flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-black text-white">Reportes Financieros · Haze Technologies</h2>
                   <p className="text-xs text-zinc-400 mt-0.5">
@@ -1324,7 +2051,7 @@ export default function Page() {
                 </div>
                 <button
                   onClick={exportCSV}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-xs font-bold shadow-lg transition"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 via-violet-600 to-fuchsia-600 text-white text-xs font-bold shadow-lg transition"
                 >
                   <Download size={15} />
                   <span>Descargar Balance (CSV)</span>
@@ -1333,7 +2060,7 @@ export default function Page() {
 
               {/* KPIs de Rendimiento */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90">
+                <div className="p-5 rounded-3xl liquid-glass">
                   <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Margen Operativo Neto</p>
                   <p className="text-2xl font-black text-white mt-2">
                     {totalIncome > 0 ? `${(((totalIncome - totalExpense) / totalIncome) * 100).toFixed(1)}%` : '0.0%'}
@@ -1341,21 +2068,21 @@ export default function Page() {
                   <p className="text-[11px] text-zinc-400 mt-1">Margen real sobre ingresos aprobados</p>
                 </div>
 
-                <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90">
+                <div className="p-5 rounded-3xl liquid-glass">
                   <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Total Ingresos COP</p>
                   <p className="text-2xl font-black text-emerald-400 mt-2">{formatCOP(totalIncome)}</p>
                   <p className="text-[11px] text-zinc-400 mt-1">Validado por ambos fundadores</p>
                 </div>
 
-                <div className="p-5 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90">
+                <div className="p-5 rounded-3xl liquid-glass">
                   <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">Total Egresos COP</p>
                   <p className="text-2xl font-black text-rose-400 mt-2">{formatCOP(totalExpense)}</p>
                   <p className="text-[11px] text-zinc-400 mt-1">Costos y operaciones aprobadas</p>
                 </div>
               </div>
 
-              {/* Desglose por Línea de Negocio */}
-              <div className="p-6 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 space-y-4">
+              {/* Desglose por Línea */}
+              <div className="p-6 rounded-3xl liquid-glass space-y-4">
                 <h3 className="text-sm font-black text-white">Desglose por Líneas de Negocio HAZE</h3>
                 <div className="space-y-3">
                   {[...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES.slice(0, 4)].map(cat => {
@@ -1364,7 +2091,7 @@ export default function Page() {
                       .filter(m => m.category === cat)
                       .reduce((acc, m) => acc + (m.type === 'Ingreso' ? m.amount : -m.amount), 0)
                     return (
-                      <div key={cat} className="flex items-center justify-between p-3.5 rounded-xl border border-white/[0.04] bg-white/[0.01]">
+                      <div key={cat} className="flex items-center justify-between p-3.5 rounded-2xl border border-white/[0.04] bg-white/[0.01]">
                         <div>
                           <p className="text-xs font-bold text-zinc-200">{cat}</p>
                           <p className="text-[10px] text-zinc-400">{count} operaciones aprobadas</p>
@@ -1380,66 +2107,62 @@ export default function Page() {
             </div>
           )}
 
-          {/* SECCIÓN 5: CONFIGURACIÓN & CLAVES */}
+          {/* SECCIÓN 7: CONFIGURACIÓN & CLAVES (OCULTAS) */}
           {activeTab === 'configuracion' && (
             <div className="space-y-6 animate-fadeIn">
-              <div className="p-6 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90">
+              <div className="p-6 rounded-3xl liquid-glass">
                 <h2 className="text-xl font-black text-white">Configuración del CRM & Credenciales</h2>
-                <p className="text-xs text-zinc-400 mt-0.5">Parámetros de acceso, claves de fundadores y protocolo mancomunado.</p>
+                <p className="text-xs text-zinc-400 mt-0.5">Parámetros de acceso, claves confidenciales y protocolo mancomunado.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Claves de los fundadores */}
-                <div className="p-6 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 space-y-4">
+                {/* Claves Protegidas */}
+                <div className="p-6 rounded-3xl liquid-glass space-y-4">
                   <div className="flex items-center gap-3">
-                    <KeyRound className="text-violet-400" size={20} />
+                    <KeyRound className="text-emerald-400" size={20} />
                     <h3 className="text-sm font-bold text-white">Claves de Fundadores</h3>
                   </div>
                   <div className="space-y-3 text-xs">
-                    <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.02] flex items-center justify-between">
                       <div>
                         <p className="font-bold text-white">Luis Alfonso Herrera</p>
                         <p className="text-[10px] text-zinc-400">Co-Fundador · Administrador</p>
                       </div>
-                      <div className="text-right">
-                        <span className="font-mono text-xs font-black text-purple-400 bg-purple-950/60 px-2.5 py-1 rounded-lg border border-purple-500/30">
-                          PIN: 1206
-                        </span>
-                      </div>
+                      <span className="font-mono text-xs font-black text-purple-300 bg-purple-950/60 px-3 py-1 rounded-xl border border-purple-500/30">
+                        PIN: ••••
+                      </span>
                     </div>
 
-                    <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.02] flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl border border-white/[0.06] bg-white/[0.02] flex items-center justify-between">
                       <div>
                         <p className="font-bold text-white">Yoinner Gándara</p>
                         <p className="text-[10px] text-zinc-400">Co-Fundador · Administrador</p>
                       </div>
-                      <div className="text-right">
-                        <span className="font-mono text-xs font-black text-fuchsia-400 bg-fuchsia-950/60 px-2.5 py-1 rounded-lg border border-fuchsia-500/30">
-                          PIN: 1205
-                        </span>
-                      </div>
+                      <span className="font-mono text-xs font-black text-emerald-300 bg-emerald-950/60 px-3 py-1 rounded-xl border border-emerald-500/30">
+                        PIN: ••••
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Moneda y Reglas */}
-                <div className="p-6 rounded-2xl border border-white/[0.08] bg-[#0c0d16]/90 space-y-4">
+                {/* Reglas del Sistema */}
+                <div className="p-6 rounded-3xl liquid-glass space-y-4">
                   <div className="flex items-center gap-3">
-                    <Building2 className="text-fuchsia-400" size={20} />
-                    <h3 className="text-sm font-bold text-white">Reglas del Sistema</h3>
+                    <Building2 className="text-purple-400" size={20} />
+                    <h3 className="text-sm font-bold text-white">Parámetros Financieros</h3>
                   </div>
                   <div className="space-y-2.5 text-xs">
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                    <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
                       <p className="text-zinc-400 font-medium">Moneda Activa:</p>
                       <p className="text-white font-bold text-sm">Pesos Colombianos (COP - $)</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                    <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
                       <p className="text-zinc-400 font-medium">Registro Temporal:</p>
-                      <p className="text-white font-bold">100% Automático al instante de guardar (sin captura manual de fecha/hora)</p>
+                      <p className="text-white font-bold">100% Automático al instante de guardar (sin captura manual)</p>
                     </div>
-                    <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                    <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.04]">
                       <p className="text-zinc-400 font-medium">Condición de Balance:</p>
-                      <p className="text-white font-bold">Requiere aprobación mutua de Luis y Yoinner para poder sumarse/restarse</p>
+                      <p className="text-white font-bold">Requiere aprobación mutua de Luis y Yoinner</p>
                     </div>
                   </div>
                 </div>
@@ -1449,11 +2172,10 @@ export default function Page() {
         </main>
       </div>
 
-      {/* MODAL: NUEVO MOVIMIENTO (Fecha y hora automáticas al instante) */}
+      {/* MODAL 1: NUEVO MOVIMIENTO FINANCIERO (Fecha y hora automáticas) */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-lg rounded-2xl border border-white/[0.1] bg-[#0c0d16] p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-            {/* Cabecera */}
+          <div className="relative w-full max-w-lg rounded-3xl liquid-glass p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
               <div>
                 <h3 className="text-base font-black text-white">Registrar Movimiento Financiero</h3>
@@ -1469,23 +2191,23 @@ export default function Page() {
               </button>
             </div>
 
-            {/* Aviso de Timestamp Automático */}
-            <div className="p-3 rounded-xl border border-purple-500/20 bg-purple-950/20 flex items-center gap-2.5 text-xs text-purple-200">
-              <Clock size={16} className="text-fuchsia-400 shrink-0" />
+            <div className="p-3.5 rounded-2xl border border-emerald-500/20 bg-emerald-950/20 flex items-center gap-2.5 text-xs text-emerald-200">
+              <Clock size={16} className="text-emerald-400 shrink-0" />
               <span>
-                <b>Hora y fecha automáticas:</b> Se registrará al segundo exacto ({currentTimeDisplay || 'al momento de guardar'}) sin necesidad de ingresarla manualmente.
+                <b>Hora y fecha automáticas:</b> Se registrará al instante ({currentTimeDisplay || 'en tiempo real'}) sin pedir fecha manual.
               </span>
             </div>
 
-            {/* Formulario */}
             <form onSubmit={handleCreateMovement} className="space-y-4">
-              {/* Tipo: Ingreso / Egreso */}
               <div>
                 <label className="text-xs font-bold text-zinc-300 block mb-1.5">Tipo de Movimiento</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, type: 'Ingreso' })}
+                    onClick={() => {
+                      sounds.playPop()
+                      setFormData({ ...formData, type: 'Ingreso' })
+                    }}
                     className={`py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
                       formData.type === 'Ingreso'
                         ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.35)]'
@@ -1496,7 +2218,10 @@ export default function Page() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setFormData({ ...formData, type: 'Egreso' })}
+                    onClick={() => {
+                      sounds.playPop()
+                      setFormData({ ...formData, type: 'Egreso' })
+                    }}
                     className={`py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${
                       formData.type === 'Egreso'
                         ? 'bg-rose-600 text-white shadow-[0_0_15px_rgba(244,63,94,0.35)]'
@@ -1508,7 +2233,6 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* Concepto */}
               <div>
                 <label className="text-xs font-bold text-zinc-300 block mb-1.5">
                   Concepto o Descripción <span className="text-rose-400">*</span>
@@ -1518,12 +2242,11 @@ export default function Page() {
                   required
                   value={formData.concept}
                   onChange={e => setFormData({ ...formData, concept: e.target.value })}
-                  placeholder="Ej. Pago lote HazeCard NFC / Venta Web SaaS / Negocio aparte"
+                  placeholder="Ej. Venta lote HazeCard / Contrato Web SaaS / Pago AWS"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-black/40 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500"
                 />
               </div>
 
-              {/* Monto en Pesos Colombianos (COP) */}
               <div>
                 <label className="text-xs font-bold text-zinc-300 block mb-1.5">
                   Monto en Pesos Colombianos (COP) <span className="text-rose-400">*</span>
@@ -1543,7 +2266,6 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* Categoría (Cambia según si es ingreso o egreso: HazeCard, Web, Negocio aparte, etc.) */}
               <div>
                 <label className="text-xs font-bold text-zinc-300 block mb-1.5">
                   Línea de {formData.type === 'Ingreso' ? 'Ingreso' : 'Gasto'}
@@ -1559,7 +2281,6 @@ export default function Page() {
                 </select>
               </div>
 
-              {/* Origen / Destino */}
               <div>
                 <label className="text-xs font-bold text-zinc-300 block mb-1.5">Cuenta de Origen / Destino</label>
                 <select
@@ -1573,7 +2294,6 @@ export default function Page() {
                 </select>
               </div>
 
-              {/* Justificación */}
               <div>
                 <label className="text-xs font-bold text-zinc-300 block mb-1.5">
                   Justificación para el otro socio <span className="text-rose-400">*</span>
@@ -1583,7 +2303,7 @@ export default function Page() {
                   rows={2}
                   value={formData.justification}
                   onChange={e => setFormData({ ...formData, justification: e.target.value })}
-                  placeholder="Detalla la procedencia del ingreso o el motivo del egreso para la aprobación mutua..."
+                  placeholder="Detalla el motivo del gasto o la procedencia del ingreso para mutuo acuerdo..."
                   className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-black/40 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500 resize-none"
                 />
               </div>
@@ -1591,7 +2311,7 @@ export default function Page() {
               <div className="pt-2">
                 <button
                   type="submit"
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-500 hover:opacity-95 text-white text-xs font-black shadow-[0_0_20px_rgba(147,51,234,0.4)] transition"
+                  className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 via-violet-600 to-fuchsia-600 hover:opacity-95 text-white text-xs font-black shadow-[0_0_20px_rgba(16,185,129,0.4)] transition"
                 >
                   Guardar con Hora Actual y Enviar para Doble Firma
                 </button>
@@ -1601,27 +2321,271 @@ export default function Page() {
         </div>
       )}
 
+      {/* MODAL 2: NUEVA INVERSIÓN POR ETAPA */}
+      {showInvestmentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-lg rounded-3xl liquid-glass p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+              <div>
+                <h3 className="text-base font-black text-white">Invertir Capital en Nueva Etapa</h3>
+                <p className="text-xs text-zinc-400">Extrae dinero del balance para generar retorno y ganancia.</p>
+              </div>
+              <button
+                onClick={() => setShowInvestmentModal(false)}
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateInvestment} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-zinc-300 block mb-1.5">Nombre del Proyecto o Etapa</label>
+                <input
+                  type="text"
+                  required
+                  value={investForm.projectName}
+                  onChange={e => setInvestForm({ ...investForm, projectName: e.target.value })}
+                  placeholder="Ej. Producción Lote HazeCard v2 / Nueva Plataforma SaaS"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-black/40 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-zinc-300 block mb-1.5">Fase / Etapa</label>
+                  <select
+                    value={investForm.stage}
+                    onChange={e => setInvestForm({ ...investForm, stage: e.target.value as any })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-white/[0.08] bg-[#0c0d16] text-xs text-zinc-200 focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="Fase Semilla">Fase Semilla</option>
+                    <option value="Desarrollo & Prototipo">Desarrollo & Prototipo</option>
+                    <option value="Producción Lote">Producción Lote</option>
+                    <option value="Escalamiento & Ventas">Escalamiento & Ventas</option>
+                    <option value="Maduración">Maduración</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-zinc-300 block mb-1.5">Capital Extraído</label>
+                  <select
+                    value={investForm.investor}
+                    onChange={e => setInvestForm({ ...investForm, investor: e.target.value as any })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-white/[0.08] bg-[#0c0d16] text-xs text-zinc-200 focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="Ambos (Capital HAZE)">Ambos (Capital HAZE)</option>
+                    <option value="Luis Alfonso Herrera">Luis Alfonso Herrera</option>
+                    <option value="Yoinner Gándara">Yoinner Gándara</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-zinc-300 block mb-1.5">Monto Invertido en Pesos (COP)</label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-xs">$ COP</span>
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    required
+                    value={investForm.investedAmount}
+                    onChange={e => setInvestForm({ ...investForm, investedAmount: e.target.value })}
+                    placeholder="2.000.000"
+                    className="w-full pl-16 pr-4 py-2.5 rounded-xl border border-white/[0.08] bg-black/40 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-zinc-300 block mb-1.5">Notas y Proyección de Retorno</label>
+                <textarea
+                  rows={2}
+                  value={investForm.notes}
+                  onChange={e => setInvestForm({ ...investForm, notes: e.target.value })}
+                  placeholder="Estimación de ganancias esperadas, clientes pactados o detalles de inversión..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-black/40 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500 resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:opacity-95 text-white text-xs font-black shadow-[0_0_20px_rgba(16,185,129,0.3)] transition"
+              >
+                Inyectar Capital y Enviar a Doble Firma
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 3: REGISTRAR RETORNO DE GANANCIA */}
+      {showReturnModal && selectedInvestmentForReturn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-md rounded-3xl liquid-glass p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+              <div>
+                <h3 className="text-base font-black text-white">Registrar Retorno / Ganancia</h3>
+                <p className="text-xs text-zinc-400">Sobre: {selectedInvestmentForReturn.projectName}</p>
+              </div>
+              <button
+                onClick={() => setShowReturnModal(false)}
+                className="p-1.5 rounded-lg text-zinc-400 hover:text-white"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleRegisterReturn} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-zinc-300 block mb-1.5">Monto de Retorno o Ganancia (COP)</label>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400 font-bold text-xs">$ COP</span>
+                  <input
+                    type="number"
+                    step="1"
+                    min="1"
+                    required
+                    value={returnForm.returnAmount}
+                    onChange={e => setReturnForm({ ...returnForm, returnAmount: e.target.value })}
+                    placeholder="500.000"
+                    className="w-full pl-16 pr-4 py-2.5 rounded-xl border border-white/[0.08] bg-black/40 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500 font-mono font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-zinc-300 block mb-1.5">Detalles del Retorno</label>
+                <textarea
+                  rows={2}
+                  value={returnForm.notes}
+                  onChange={e => setReturnForm({ ...returnForm, notes: e.target.value })}
+                  placeholder="Venta del lote completada, pago cliente fase 2, dividendos..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-black/40 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500 resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-white text-xs font-black shadow-[0_0_20px_rgba(16,185,129,0.3)] transition"
+              >
+                Acreditar Ganancia al Proyecto
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 4: NUEVO PENDIENTE / COMPROMISO */}
+      {showTaskModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-md rounded-3xl liquid-glass p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-white/[0.06] pb-4">
+              <div>
+                <h3 className="text-base font-black text-white">Nuevo Compromiso Financiero</h3>
+                <p className="text-xs text-zinc-400">Anota una tarea, cobro o pago pendiente.</p>
+              </div>
+              <button onClick={() => setShowTaskModal(false)} className="p-1.5 rounded-lg text-zinc-400 hover:text-white">
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTask} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-zinc-300 block mb-1.5">Título del Pendiente</label>
+                <input
+                  type="text"
+                  required
+                  value={taskForm.title}
+                  onChange={e => setTaskForm({ ...taskForm, title: e.target.value })}
+                  placeholder="Ej. Pagar servidores AWS / Facturar cliente HazeCard"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-black/40 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-zinc-300 block mb-1.5">Prioridad</label>
+                  <select
+                    value={taskForm.priority}
+                    onChange={e => setTaskForm({ ...taskForm, priority: e.target.value as any })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-white/[0.08] bg-[#0c0d16] text-xs text-zinc-200 focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="Alta">Alta</option>
+                    <option value="Media">Media</option>
+                    <option value="Baja">Baja</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-zinc-300 block mb-1.5">Asignado a</label>
+                  <select
+                    value={taskForm.assignedTo}
+                    onChange={e => setTaskForm({ ...taskForm, assignedTo: e.target.value as any })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-white/[0.08] bg-[#0c0d16] text-xs text-zinc-200 focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="Ambos">Ambos</option>
+                    <option value="Luis">Luis</option>
+                    <option value="Yoinner">Yoinner</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-zinc-300 block mb-1.5">Monto Estimado en COP (Opcional)</label>
+                <input
+                  type="number"
+                  step="1"
+                  value={taskForm.estimatedAmount}
+                  onChange={e => setTaskForm({ ...taskForm, estimatedAmount: e.target.value })}
+                  placeholder="$ 0 COP"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-white/[0.08] bg-black/40 text-xs text-white placeholder-zinc-400 focus:outline-none focus:border-purple-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-zinc-300 block mb-1.5">Fecha Límite Estimada (Opcional)</label>
+                <input
+                  type="date"
+                  value={taskForm.dueDate}
+                  onChange={e => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-white/[0.08] bg-[#0c0d16] text-xs text-white focus:outline-none focus:border-purple-500"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-xs font-black shadow-[0_0_20px_rgba(147,51,234,0.3)] transition"
+              >
+                Añadir Compromiso
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* DRAWER MÓVIL */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 flex lg:hidden bg-black/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex lg:hidden bg-black/80 backdrop-blur-md">
           <div className="relative w-72 bg-[#07080f] p-5 border-r border-white/[0.08] flex flex-col justify-between h-full">
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-white/[0.06] mb-5">
-                <div className="flex items-center gap-2">
-                  <div className="size-8 rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center text-white">
-                    <Sparkles size={16} />
+                <div className="flex items-center gap-2.5">
+                  <div className="size-8 rounded-full overflow-hidden border border-white/[0.1]">
+                    <Image src="/haze-logo-circle.png" alt="Logo" width={32} height={32} />
                   </div>
-                  <span className="font-black text-sm text-white">HAZE<span className="text-fuchsia-500">.</span>CO</span>
+                  <span className="font-black text-sm text-white">HAZE<span className="text-emerald-400">.</span>CO</span>
                 </div>
                 <button onClick={() => setMobileMenuOpen(false)} className="text-zinc-400 hover:text-white">
                   <X size={18} />
                 </button>
               </div>
 
-              <div className="mb-4 p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs">
-                <p className="text-[10px] text-zinc-400">Usuario activo:</p>
+              <div className="mb-4 p-3 rounded-2xl liquid-glass text-xs">
+                <p className="text-[10px] text-zinc-400">Fundador activo:</p>
                 <p className="font-bold text-white">{activeFounderObj.name}</p>
-                <button onClick={handleLogout} className="text-[10px] text-rose-400 hover:underline mt-1 block">
+                <button onClick={handleLogout} className="text-[10px] text-purple-400 hover:underline mt-1 block font-semibold">
                   Cambiar usuario (PIN)
                 </button>
               </div>
@@ -1630,7 +2594,9 @@ export default function Page() {
                 {[
                   { id: 'resumen', label: 'Resumen', icon: LayoutDashboard },
                   { id: 'movimientos', label: 'Ingresos y Egresos', icon: ReceiptText },
-                  { id: 'aprobaciones', label: `Pendientes (${pendingMovements.length})`, icon: FileCheck2 },
+                  { id: 'inversiones', label: 'Inversiones & ROI', icon: TrendingUp },
+                  { id: 'pendientes', label: `Compromisos (${tasks.filter(t => !t.completed).length})`, icon: ListTodo },
+                  { id: 'aprobaciones', label: `Pendientes Firma (${pendingMovements.length})`, icon: FileCheck2 },
                   { id: 'reportes', label: 'Reportes', icon: BarChart3 },
                   { id: 'configuracion', label: 'Configuración', icon: Settings2 },
                 ].map(item => {
@@ -1639,6 +2605,7 @@ export default function Page() {
                     <button
                       key={item.id}
                       onClick={() => {
+                        sounds.playPop()
                         setActiveTab(item.id as any)
                         setMobileMenuOpen(false)
                       }}
@@ -1655,7 +2622,7 @@ export default function Page() {
             </div>
 
             <div className="pt-4 border-t border-white/[0.06] text-xs text-zinc-400">
-              <p className="font-bold text-white">HAZE Finance · COP</p>
+              <p className="font-bold text-white">HAZE Technologies</p>
               <p className="text-[10px]">Barranquilla, Colombia</p>
             </div>
           </div>
@@ -1665,8 +2632,8 @@ export default function Page() {
 
       {/* TOAST FLOTANTE */}
       {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-xl border border-purple-500/30 bg-[#0f101d] text-white text-xs font-semibold shadow-[0_0_25px_rgba(147,51,234,0.35)] animate-bounce-subtle">
-          <Check size={16} className="text-fuchsia-400" />
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3 rounded-2xl liquid-glass border border-emerald-500/30 text-white text-xs font-semibold shadow-[0_0_25px_rgba(16,185,129,0.35)] animate-bounce-subtle">
+          <Sparkles size={16} className="text-emerald-400" />
           <span>{toast}</span>
         </div>
       )}

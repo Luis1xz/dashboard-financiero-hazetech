@@ -2,21 +2,18 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'HAZE Finance | Founder OS · Control Financiero Mancomunado',
-  description: 'Dashboard CRM financiero para los fundadores de Haze Technologies (hazetech.co). Control de ingresos, egresos, reportería y doble aprobación.',
+  title: 'HAZE Finance | Founder OS · Control Financiero e Inversiones',
+  description: 'Sistema CRM financiero, control mancomunado e inversiones para los fundadores de Haze Technologies (hazetech.co).',
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
+        url: '/haze-logo-circle.png',
+        type: 'image/png',
       },
       {
         url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        sizes: '32x32',
+        type: 'image/png',
       },
     ],
     apple: '/apple-icon.png',
@@ -25,7 +22,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   colorScheme: 'dark',
-  themeColor: '#050508',
+  themeColor: '#040508',
 }
 
 export default function RootLayout({
@@ -35,7 +32,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="dark">
-      <body className="min-h-screen bg-[#050508] text-[#f4f4f7] antialiased">
+      <head>
+        <link rel="icon" href="/haze-logo-circle.png" type="image/png" />
+      </head>
+      <body className="min-h-screen bg-[#040508] text-[#f4f4f8] antialiased">
         {children}
       </body>
     </html>
