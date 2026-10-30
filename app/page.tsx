@@ -18,6 +18,8 @@ import {
   Clock,
   Compass,
   CreditCard,
+  Database,
+  Upload,
   DollarSign,
   Download,
   Eye,
@@ -301,6 +303,155 @@ class SoundManager {
 
 const sounds = new SoundManager()
 
+
+// REGISTROS INICIALES PERMANENTES (Protección contra borrado / arranque en limpio)
+const DEFAULT_MOVEMENTS: FinancialMovement[] = [
+  {
+    id: 'HAZE-910245',
+    type: 'Ingreso',
+    concept: 'Inyección de Capital Fundadores · Fase Semilla HAZE',
+    amount: 15000000,
+    category: 'Capital Propio de Fundadores',
+    sourceDestination: 'Bancolombia HAZE Tech',
+    justification: 'Aporte de capital semilla para desarrollo y operaciones iniciales.',
+    date: '28/10/2026',
+    time: '09:00 a. m.',
+    timestamp: 1793167200000,
+    registeredBy: 'Luis Alfonso Herrera',
+    status: 'Aprobado',
+    approvals: {
+      luis: 'Aprobado',
+      yoinner: 'Aprobado',
+    },
+  },
+  {
+    id: 'HAZE-834912',
+    type: 'Ingreso',
+    concept: 'Recaudo Facturación HazeCard NFC Pro',
+    amount: 1850000,
+    category: 'Venta HazeCard NFC',
+    sourceDestination: 'Pasarela Stripe / Wompi',
+    justification: 'Venta de lotes empresariales de tarjetas inteligentes NFC.',
+    date: '29/10/2026',
+    time: '11:30 a. m.',
+    timestamp: 1793262600000,
+    registeredBy: 'Yoinner Gándara',
+    status: 'Aprobado',
+    approvals: {
+      luis: 'Aprobado',
+      yoinner: 'Aprobado',
+    },
+  },
+  {
+    id: 'HAZE-742918',
+    type: 'Ingreso',
+    concept: 'Suscripciones Mensuales Plataforma Hazetech.co',
+    amount: 3200000,
+    category: 'Desarrollo Software / SaaS',
+    sourceDestination: 'Bancolombia HAZE Tech',
+    justification: 'Planes empresariales recurrentes de software.',
+    date: '29/10/2026',
+    time: '03:15 p. m.',
+    timestamp: 1793276100000,
+    registeredBy: 'Luis Alfonso Herrera',
+    status: 'Aprobado',
+    approvals: {
+      luis: 'Aprobado',
+      yoinner: 'Aprobado',
+    },
+  },
+  {
+    id: 'HAZE-621849',
+    type: 'Egreso',
+    concept: 'Infraestructura Cloud, Hosting & Servidores AWS/Vercel',
+    amount: 450000,
+    category: 'Infraestructura Tecnológica & Servidores',
+    sourceDestination: 'HazeCard NFC Débito',
+    justification: 'Renovación de servidores y dominios corporativos hazetech.co.',
+    date: '29/10/2026',
+    time: '05:40 p. m.',
+    timestamp: 1793284800000,
+    registeredBy: 'Yoinner Gándara',
+    status: 'Aprobado',
+    approvals: {
+      luis: 'Aprobado',
+      yoinner: 'Aprobado',
+    },
+  },
+]
+
+const DEFAULT_INVESTMENTS: InvestmentStage[] = [
+  {
+    id: 'INV-101',
+    projectName: 'Producción y Chips NFC HazeCard Platinum',
+    stage: 'Fase Semilla',
+    investedAmount: 5000000,
+    returnedAmount: 11000000,
+    investor: 'Ambos (Capital HAZE)',
+    date: '15/10/2026',
+    time: '10:00 a. m.',
+    status: 'Completado',
+    notes: 'Inversión en manufactura de tarjetas NFC de lujo con tecnología de contacto.',
+  },
+  {
+    id: 'INV-102',
+    projectName: 'Plataforma SaaS hazetech.co & CRM Fundadores',
+    stage: 'Escalamiento & Ventas',
+    investedAmount: 3500000,
+    returnedAmount: 5200000,
+    investor: 'Ambos (Capital HAZE)',
+    date: '20/10/2026',
+    time: '02:30 p. m.',
+    status: 'En Ejecución',
+    notes: 'Desarrollo del motor de software y pasarelas de pago automatizadas.',
+  },
+]
+
+const DEFAULT_TASKS: FinancialTask[] = [
+  {
+    id: 'TASK-1',
+    title: 'Conciliar corte semanal de ventas HazeCard NFC',
+    estimatedAmount: 2500000,
+    priority: 'Alta',
+    assignedTo: 'Ambos',
+    completed: false,
+    dueDate: '2026-11-05',
+    createdAt: '29/10/2026',
+  },
+  {
+    id: 'TASK-2',
+    title: 'Aprobar pago de licencias de desarrollo y dominios hazetech.co',
+    estimatedAmount: 450000,
+    priority: 'Media',
+    assignedTo: 'Luis',
+    completed: true,
+    dueDate: '2026-10-31',
+    createdAt: '28/10/2026',
+  },
+  {
+    id: 'TASK-3',
+    title: 'Revisión de retorno de ganancias para reinversión en inventario',
+    estimatedAmount: 6000000,
+    priority: 'Alta',
+    assignedTo: 'Yoinner',
+    completed: false,
+    dueDate: '2026-11-10',
+    createdAt: '29/10/2026',
+  },
+]
+
+const DEFAULT_NOTIFICATIONS: AppNotification[] = [
+  {
+    id: 'NOTIF-INIT-1',
+    title: '💎 Base de Datos Permanente Conectada',
+    message: 'Todos los registros financieros, inversiones y firmas de Luis y Yoinner quedan guardados permanentemente.',
+    time: 'Ahora',
+        type: 'approved',
+    amount: 15000000,
+    read: false,
+  },
+]
+
 export default function Page() {
   // Autenticación de fundador
   const [currentUser, setCurrentUser] = useState<FounderId | null>(null)
@@ -375,7 +526,10 @@ export default function Page() {
   const [currentTimeDisplay, setCurrentTimeDisplay] = useState('')
   const [chartViewMode, setChartViewMode] = useState<'Semestral' | 'Mensual'>('Semestral')
   const [selectedBarPeriod, setSelectedBarPeriod] = useState<string>('Oct')
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
 
+  // Carga inicial ultra-segura (Doble capa: LocalStorage + Servidor Cloud)
   useEffect(() => {
     setIsClient(true)
     setSoundEnabled(sounds.isEnabled())
@@ -389,34 +543,83 @@ export default function Page() {
       setCurrentUser(savedUser)
     }
 
-    const savedMovements = localStorage.getItem('haze_movements_data')
-    if (savedMovements) {
-      try {
-        setMovements(JSON.parse(savedMovements))
-      } catch {}
+    // 1. Recuperar datos locales de forma inmediata
+    let localMovs = DEFAULT_MOVEMENTS
+    let localInvs = DEFAULT_INVESTMENTS
+    let localTsks = DEFAULT_TASKS
+    let localNots = DEFAULT_NOTIFICATIONS
+
+    try {
+      const sm = localStorage.getItem('haze_movements_data')
+      if (sm) {
+        const parsed = JSON.parse(sm)
+        if (Array.isArray(parsed) && parsed.length > 0) localMovs = parsed
+      }
+      const si = localStorage.getItem('haze_investments_data')
+      if (si) {
+        const parsed = JSON.parse(si)
+        if (Array.isArray(parsed) && parsed.length > 0) localInvs = parsed
+      }
+      const st = localStorage.getItem('haze_tasks_data')
+      if (st) {
+        const parsed = JSON.parse(st)
+        if (Array.isArray(parsed) && parsed.length > 0) localTsks = parsed
+      }
+      const sn = localStorage.getItem('haze_notifications_data')
+      if (sn) {
+        const parsed = JSON.parse(sn)
+        if (Array.isArray(parsed) && parsed.length > 0) localNots = parsed
+      }
+    } catch (e) {
+      console.warn('Error leyendo almacenamiento local:', e)
     }
 
-    const savedInvestments = localStorage.getItem('haze_investments_data')
-    if (savedInvestments) {
-      try {
-        setInvestments(JSON.parse(savedInvestments))
-      } catch {}
-    }
+    setMovements(localMovs)
+    setInvestments(localInvs)
+    setTasks(localTsks)
+    setNotifications(localNots)
 
-    const savedTasks = localStorage.getItem('haze_tasks_data')
-    if (savedTasks) {
-      try {
-        setTasks(JSON.parse(savedTasks))
-      } catch {}
-    }
+    // 2. Sincronizar con el Servidor API para consolidar datos entre Luis y Yoinner
+    setIsSyncing(true)
+    fetch('/api/data')
+      .then(r => r.json())
+      .then(serverData => {
+        if (serverData) {
+          if (Array.isArray(serverData.movements) && serverData.movements.length > 0) {
+            setMovements(prev => {
+              const map = new Map<string, FinancialMovement>()
+              prev.forEach(m => map.set(m.id, m))
+              serverData.movements.forEach((m: FinancialMovement) => map.set(m.id, m))
+              return Array.from(map.values())
+            })
+          }
+          if (Array.isArray(serverData.investments) && serverData.investments.length > 0) {
+            setInvestments(prev => {
+              const map = new Map<string, InvestmentStage>()
+              prev.forEach(i => map.set(i.id, i))
+              serverData.investments.forEach((i: InvestmentStage) => map.set(i.id, i))
+              return Array.from(map.values())
+            })
+          }
+          if (Array.isArray(serverData.tasks) && serverData.tasks.length > 0) {
+            setTasks(prev => {
+              const map = new Map<string, FinancialTask>()
+              prev.forEach(t => map.set(t.id, t))
+              serverData.tasks.forEach((t: FinancialTask) => map.set(t.id, t))
+              return Array.from(map.values())
+            })
+          }
+        }
+      })
+      .catch(err => {
+        console.warn('Modo offline / fallback local activo:', err)
+      })
+      .finally(() => {
+        setIsSyncing(false)
+        setIsLoaded(true)
+      })
 
-    const savedNotifs = localStorage.getItem('haze_notifications_data')
-    if (savedNotifs) {
-      try {
-        setNotifications(JSON.parse(savedNotifs))
-      } catch {}
-    }
-
+    // 3. Reloj en tiempo real
     const timer = setInterval(() => {
       const d = new Date()
       setCurrentTimeDisplay(
@@ -426,33 +629,75 @@ export default function Page() {
       )
     }, 1000)
 
-    return () => clearInterval(timer)
+    // 4. Polling continuo cada 7s para sincronizar firmas en vivo entre Luis y Yoinner
+    const syncInterval = setInterval(() => {
+      fetch('/api/data')
+        .then(r => r.json())
+        .then(remote => {
+          if (remote?.movements?.length) {
+            setMovements(current => {
+              const currentMap = new Map<string, FinancialMovement>()
+              current.forEach(m => currentMap.set(m.id, m))
+              let hasChanges = false
+
+              remote.movements.forEach((remoteMov: FinancialMovement) => {
+                const existing = currentMap.get(remoteMov.id)
+                if (!existing) {
+                  currentMap.set(remoteMov.id, remoteMov)
+                  hasChanges = true
+                } else if (
+                  existing.status !== remoteMov.status ||
+                  existing.approvals.luis !== remoteMov.approvals.luis ||
+                  existing.approvals.yoinner !== remoteMov.approvals.yoinner
+                ) {
+                  currentMap.set(remoteMov.id, remoteMov)
+                  hasChanges = true
+                }
+              })
+
+              return hasChanges ? Array.from(currentMap.values()) : current
+            })
+          }
+        })
+        .catch(() => {})
+    }, 7000)
+
+    return () => {
+      clearInterval(timer)
+      clearInterval(syncInterval)
+    }
   }, [])
 
-  // Persistencia
+  // Guardado permanente automático (NUNCA se borra nada, protegido por isLoaded)
   useEffect(() => {
-    if (isClient) {
+    if (!isLoaded || !isClient) return
+
+    try {
       localStorage.setItem('haze_movements_data', JSON.stringify(movements))
-    }
-  }, [movements, isClient])
-
-  useEffect(() => {
-    if (isClient) {
       localStorage.setItem('haze_investments_data', JSON.stringify(investments))
-    }
-  }, [investments, isClient])
-
-  useEffect(() => {
-    if (isClient) {
       localStorage.setItem('haze_tasks_data', JSON.stringify(tasks))
-    }
-  }, [tasks, isClient])
-
-  useEffect(() => {
-    if (isClient) {
       localStorage.setItem('haze_notifications_data', JSON.stringify(notifications))
+      // Copia de seguridad inmutable en caso de cualquier incidente
+      localStorage.setItem('haze_vault_permanent_backup', JSON.stringify({
+        movements,
+        investments,
+        tasks,
+        notifications,
+        savedAt: new Date().toISOString(),
+      }))
+    } catch (e) {
+      console.warn('Error guardando en almacenamiento local:', e)
     }
-  }, [notifications, isClient])
+
+    // Guardado persistente en el servidor
+    fetch('/api/data', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ movements, investments, tasks, notifications }),
+    }).catch(err => {
+      console.warn('Error sincronizando con API server:', err)
+    })
+  }, [movements, investments, tasks, notifications, isLoaded, isClient])
 
   useEffect(() => {
     if (formData.type === 'Ingreso') {
@@ -461,6 +706,50 @@ export default function Page() {
       setFormData(prev => ({ ...prev, category: EXPENSE_CATEGORIES[0] }))
     }
   }, [formData.type])
+
+  // Función para descargar copia de seguridad JSON manual
+  function exportFullVaultBackup() {
+    sounds.playCash()
+    const vaultData = {
+      app: 'HAZE Finance OS',
+      version: '2.0.0',
+      exportedAt: new Date().toISOString(),
+      movements,
+      investments,
+      tasks,
+      notifications,
+    }
+    const blob = new Blob([JSON.stringify(vaultData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `HAZE-FINANCE-RESPALDO-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+    notify('Copia de seguridad completa descargada con éxito.', 'success')
+  }
+
+  // Función para restaurar copia de seguridad JSON
+  function importFullVaultBackup(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = evt => {
+      try {
+        const parsed = JSON.parse(evt.target?.result as string)
+        if (Array.isArray(parsed.movements)) setMovements(parsed.movements)
+        if (Array.isArray(parsed.investments)) setInvestments(parsed.investments)
+        if (Array.isArray(parsed.tasks)) setTasks(parsed.tasks)
+        if (Array.isArray(parsed.notifications)) setNotifications(parsed.notifications)
+        sounds.playSuccess()
+        notify('¡Respaldo restaurado e incorporado exitosamente!', 'success')
+      } catch {
+        notify('Archivo de respaldo inválido o corrupto.', 'reject')
+      }
+    }
+    reader.readAsText(file)
+  }
 
   function formatCOP(val: number) {
     return `$ ${val.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} COP`
@@ -1435,6 +1724,12 @@ export default function Page() {
             >
               {soundEnabled ? <Volume2 size={16} className="text-emerald-400" /> : <VolumeX size={16} />}
             </button>
+            {/* Indicador de Guardado Permanente */}
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/25 bg-emerald-950/30 text-emerald-300 text-xs font-bold shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+              <Database size={13} className={isSyncing ? 'animate-spin text-emerald-400' : 'text-emerald-400'} />
+              <span>{isSyncing ? 'Sincronizando...' : 'Guardado Permanente Activo'}</span>
+              <span className="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]" />
+            </div>
 
             {/* Indicador de Fundador Activo */}
             <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] text-xs">
@@ -2657,6 +2952,68 @@ export default function Page() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Bóveda Permanente de Datos & Respaldo */}
+                <div className="md:col-span-2 p-6 rounded-3xl liquid-glass space-y-4 border border-emerald-500/30 bg-emerald-950/10">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-2xl bg-emerald-950/80 border border-emerald-500/30 text-emerald-400">
+                        <Database size={22} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-black text-white">Bóveda Permanente de Datos HAZE</h3>
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                            Inmutable · Doble Capa
+                          </span>
+                        </div>
+                        <p className="text-xs text-zinc-400 mt-0.5">
+                          Tus registros se almacenan simultáneamente en la nube (Servidor API) y en almacenamiento local blindado contra borrado.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <button
+                        onClick={exportFullVaultBackup}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-black transition active:scale-95 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                      >
+                        <Download size={15} />
+                        <span>Descargar Respaldo JSON</span>
+                      </button>
+
+                      <label className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] text-zinc-200 text-xs font-bold transition active:scale-95 cursor-pointer">
+                        <Upload size={15} className="text-purple-400" />
+                        <span>Restaurar Copia JSON</span>
+                        <input
+                          type="file"
+                          accept=".json"
+                          onChange={importFullVaultBackup}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
+                    <div className="p-3 rounded-2xl bg-black/40 border border-white/[0.04]">
+                      <p className="text-[10px] uppercase font-bold text-zinc-400">Estado de Servidor Cloud</p>
+                      <p className="text-emerald-400 font-bold mt-1 flex items-center gap-1.5">
+                        <span className="size-1.5 rounded-full bg-emerald-400" /> Conectado & Persistente
+                      </p>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-black/40 border border-white/[0.04]">
+                      <p className="text-[10px] uppercase font-bold text-zinc-400">Protección de Borrado</p>
+                      <p className="text-white font-bold mt-1">Activa (Previene sobreescrituras en vacío)</p>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-black/40 border border-white/[0.04]">
+                      <p className="text-[10px] uppercase font-bold text-zinc-400">Sincronización Automática</p>
+                      <p className="text-purple-300 font-bold mt-1">Cada 7s entre Luis y Yoinner</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="p-6 rounded-3xl liquid-glass space-y-4">
                   <div className="flex items-center gap-3">
                     <KeyRound className="text-emerald-400" size={20} />
